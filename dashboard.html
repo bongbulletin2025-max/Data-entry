@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ড্যাশবোর্ড - বাজি অ্যাপ</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <div id="digital-clock" class="digital-clock"></div>
+            </div>
+            <div class="header-right">
+                <button id="logoutBtn" class="logout-btn">লগআউট</button>
+            </div>
+        </header>
+
+        <main>
+            <section class="section dealer-registration">
+                <h2>ডিলার রেজিস্ট্রেশন</h2>
+                <div class="input-group-inline">
+                    <input type="text" id="dealerName" placeholder="ডিলারের নাম" required>
+                    <input type="text" id="dealerPhone" placeholder="ফোন নাম্বার" required>
+                    <button id="registerDealerBtn">রেজিস্টার ডিলার</button>
+                </div>
+            </section>
+
+            <section class="section data-entry">
+                <h2>ডেটা এন্ট্রি</h2>
+                <div class="input-group-inline">
+                    <select id="dealerSelect" required>
+                        <option value="">ডিলার সিলেক্ট করুন</option>
+                    </select>
+                </div>
+                <div class="number-input-grid">
+                    <div class="current-baji-info">
+                        বর্তমান বাজি: <span id="currentBajiName"></span>
+                    </div>
+                    <div class="input-row">
+                        <label for="amount0">0:</label>
+                        <input type="number" id="amount0" min="0" value="0">
+                        <label for="amount1">1:</label>
+                        <input type="number" id="amount1" min="0" value="0">
+                        <label for="amount2">2:</label>
+                        <input type="number" id="amount2" min="0" value="0">
+                        <label for="amount3">3:</label>
+                        <input type="number" id="amount3" min="0" value="0">
+                        <label for="amount4">4:</label>
+                        <input type="number" id="amount4" min="0" value="0">
+                    </div>
+                    <div class="input-row">
+                        <label for="amount5">5:</label>
+                        <input type="number" id="amount5" min="0" value="0">
+                        <label for="amount6">6:</label>
+                        <input type="number" id="amount6" min="0" value="0">
+                        <label for="amount7">7:</label>
+                        <input type="number" id="amount7" min="0" value="0">
+                        <label for="amount8">8:</label>
+                        <input type="number" id="amount8" min="0" value="0">
+                        <label for="amount9">9:</label>
+                        <input type="number" id="amount9" min="0" value="0">
+                    </div>
+                </div>
+                <button id="submitEntryBtn">এন্ট্রি জমা দিন</button>
+            </section>
+
+            <section class="section graphs-section">
+                <h2>বাজি রিপোর্ট (মোট টাকা)</h2>
+                <div class="graphs-container">
+                    </div>
+            </section>
+        </main>
+
+        <footer class="report-section">
+            <h2>রিপোর্ট</h2>
+            <div class="report-controls">
+                <input type="date" id="reportDate" required>
+                <select id="reportDealerSelect">
+                    <option value="">ডিলার সিলেক্ট করুন</option>
+                </select>
+                <button id="downloadReportBtn">রিপোর্ট ডাউনলোড করুন</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ড্যাশবোর্ড - বাজি অ্যাপ</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <div id="digital-clock" class="digital-clock"></div>
+            </div>
+            <div class="header-right">
+                <button id="logoutBtn" class="logout-btn">লগআউট</button>
+            </div>
+        </header>
+
+        <main>
+            <section class="section dealer-registration">
+                <h2>ডিলার রেজিস্ট্রেশন</h2>
+                <div class="input-group-inline">
+                    <input type="text" id="dealerName" placeholder="ডিলারের নাম" required>
+                    <input type="text" id="dealerPhone" placeholder="ফোন নাম্বার" required>
+                    <button id="registerDealerBtn">রেজিস্টার ডিলার</button>
+                </div>
+            </section>
+
+            <section class="section data-entry">
+                <h2>ডেটা এন্ট্রি</h2>
+                <div class="input-group-inline">
+                    <select id="dealerSelect" required>
+                        <option value="">ডিলার সিলেক্ট করুন</option>
+                    </select>
+                </div>
+                <div class="number-input-grid">
+                    <div class="current-baji-info">
+                        বর্তমান বাজি: <span id="currentBajiName"></span>
+                    </div>
+                    <div class="input-row">
+                        <label for="amount0">0:</label>
+                        <input type="number" id="amount0" min="0" value="0">
+                        <label for="amount1">1:</label>
+                        <input type="number" id="amount1" min="0" value="0">
+                        <label for="amount2">2:</label>
+                        <input type="number" id="amount2" min="0" value="0">
+                        <label for="amount3">3:</label>
+                        <input type="number" id="amount3" min="0" value="0">
+                        <label for="amount4">4:</label>
+                        <input type="number" id="amount4" min="0" value="0">
+                    </div>
+                    <div class="input-row">
+                        <label for="amount5">5:</label>
+                        <input type="number" id="amount5" min="0" value="0">
+                        <label for="amount6">6:</label>
+                        <input type="number" id="amount6" min="0" value="0">
+                        <label for="amount7">7:</label>
+                        <input type="number" id="amount7" min="0" value="0">
+                        <label for="amount8">8:</label>
+                        <input type="number" id="amount8" min="0" value="0">
+                        <label for="amount9">9:</label>
+                        <input type="number" id="amount9" min="0" value="0">
+                    </div>
+                </div>
+                <button id="submitEntryBtn">এন্ট্রি জমা দিন</button>
+            </section>
+
+            <section class="section graphs-section">
+                <h2>বাজি রিপোর্ট (মোট টাকা)</h2>
+                <div class="graphs-container">
+                    </div>
+            </section>
+        </main>
+
+        <footer class="report-section">
+            <h2>রিপোর্ট</h2>
+            <div class="report-controls">
+                <input type="date" id="reportDate" required>
+                <select id="reportDealerSelect">
+                    <option value="">ডিলার সিলেক্ট করুন</option>
+                </select>
+                <button id="downloadReportBtn">রিপোর্ট ডাউনলোড করুন</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
