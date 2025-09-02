@@ -1,54 +1,144 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লগইন - বাজি অ্যাপ</title>
+    <title>The Lucky Number</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="login-page">
-    <div class="login-container">
-        <h1>লগইন</h1>
-        <form id="loginForm">
-            <div class="input-group">
-                <label for="username">ইউজারনেম</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="input-group">
-                <label for="password">পাসওয়ার্ড</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">লগইন</button>
-            <p id="loginMessage" class="error-message"></p>
-        </form>
+<body>
+
+    <div id="login-page">
+        <div class="container">
+            <h2>লগইন</h2>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="ইউজারনেম" required>
+                <input type="password" id="password" placeholder="পাসওয়ার্ড" required>
+                <button type="submit">লগইন করুন</button>
+            </form>
+        </div>
     </div>
+
+    <div id="main-app" style="display: none;">
+        <header>
+            <h1>The Lucky Number</h1>
+            <div id="user-info">
+                <span id="user-name"></span> |
+                টোকেন: <span id="user-tokens"></span>
+            </div>
+            <button id="logout-btn">লগআউট</button>
+        </header>
+
+        <div class="container">
+            <section id="results">
+                <h2>আজকের রেজাল্ট</h2>
+                <p>তারিখ: <span id="result-date"></span></p>
+                <div id="results-container">
+                    </div>
+            </section>
+
+            <section id="betting-area">
+                <h2>বেট করুন</h2>
+                <div class="betting-form">
+                    <div class="bet-input-group">
+                        <label for="single-number">সিঙ্গেল নাম্বার (0-9):</label>
+                        <input type="text" id="single-number" placeholder="যেমন: 7">
+                        <label for="single-tokens">টোকেন:</label>
+                        <input type="number" id="single-tokens" min="1" placeholder="টোকেন সংখ্যা">
+                        <button id="bet-single-btn">বেট করুন</button>
+                    </div>
+
+                    <div class="bet-input-group">
+                        <label for="patti-numbers">পাত্তি নাম্বার (কমা দিয়ে):</label>
+                        <input type="text" id="patti-numbers" placeholder="যেমন: 123, 456, 789">
+                        <label for="patti-tokens">টোকেন:</label>
+                        <input type="number" id="patti-tokens" min="1" placeholder="টোকেন সংখ্যা">
+                        <button id="bet-patti-btn">বেট করুন</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="history">
+                <h2>টোকেন হিস্ট্রি এবং রিপোর্ট</h2>
+                <div id="history-list">
+                    </div>
+                <button id="generate-report-btn">রিপোর্ট জেনারেট করুন</button>
+            </section>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লগইন - বাজি অ্যাপ</title>
+    <title>The Lucky Number</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="login-page">
-    <div class="login-container">
-        <h1>লগইন</h1>
-        <form id="loginForm">
-            <div class="input-group">
-                <label for="username">ইউজারনেম</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="input-group">
-                <label for="password">পাসওয়ার্ড</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">লগইন</button>
-            <p id="loginMessage" class="error-message"></p>
-        </form>
+<body>
+
+    <div id="login-page">
+        <div class="container">
+            <h2>লগইন</h2>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="ইউজারনেম" required>
+                <input type="password" id="password" placeholder="পাসওয়ার্ড" required>
+                <button type="submit">লগইন করুন</button>
+            </form>
+        </div>
     </div>
+
+    <div id="main-app" style="display: none;">
+        <header>
+            <h1>The Lucky Number</h1>
+            <div id="user-info">
+                <span id="user-name"></span> |
+                টোকেন: <span id="user-tokens"></span>
+            </div>
+            <button id="logout-btn">লগআউট</button>
+        </header>
+
+        <div class="container">
+            <section id="results">
+                <h2>আজকের রেজাল্ট</h2>
+                <p>তারিখ: <span id="result-date"></span></p>
+                <div id="results-container">
+                    </div>
+            </section>
+
+            <section id="betting-area">
+                <h2>বেট করুন</h2>
+                <div class="betting-form">
+                    <div class="bet-input-group">
+                        <label for="single-number">সিঙ্গেল নাম্বার (0-9):</label>
+                        <input type="text" id="single-number" placeholder="যেমন: 7">
+                        <label for="single-tokens">টোকেন:</label>
+                        <input type="number" id="single-tokens" min="1" placeholder="টোকেন সংখ্যা">
+                        <button id="bet-single-btn">বেট করুন</button>
+                    </div>
+
+                    <div class="bet-input-group">
+                        <label for="patti-numbers">পাত্তি নাম্বার (কমা দিয়ে):</label>
+                        <input type="text" id="patti-numbers" placeholder="যেমন: 123, 456, 789">
+                        <label for="patti-tokens">টোকেন:</label>
+                        <input type="number" id="patti-tokens" min="1" placeholder="টোকেন সংখ্যা">
+                        <button id="bet-patti-btn">বেট করুন</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="history">
+                <h2>টোকেন হিস্ট্রি এবং রিপোর্ট</h2>
+                <div id="history-list">
+                    </div>
+                <button id="generate-report-btn">রিপোর্ট জেনারেট করুন</button>
+            </section>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
