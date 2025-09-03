@@ -60,7 +60,8 @@ loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    auth.signInWithEmailAndPassword(username + '@example.com', password)
+    auth.signInWithEmailAndPassword(username, password)
+
         .catch(error => alert("লগইন ব্যর্থ হয়েছে: " + error.message));
 });
 
