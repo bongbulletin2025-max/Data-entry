@@ -29,7 +29,7 @@
         <div class="container">
             <h2>লগইন</h2>
             <form id="login-form">
-                <input type="text" id="username" placeholder="ইউজারনেম" required>
+                <input type="email" id="username" placeholder="ইউজারনেম" required>
                 <input type="password" id="password" placeholder="পাসওয়ার্ড" required>
                 <button type="submit">লগইন করুন</button>
             </form>
@@ -57,7 +57,7 @@
                 <h2>বেট করুন</h2>
                 <div class="betting-form">
                     <div id="betting-closed-message" style="display: none;">
-                        <p>এই খেলার বেটিং এখন বন্ধ আছে।</p>
+                        <p>এই খেলার বেটিং এখন বন্ধ আছে। পরবর্তী খেলা শুরু হলে বেটিং আবার শুরু হবে।</p>
                     </div>
                     <div id="betting-open-area">
                         <div class="bet-input-group">
@@ -69,7 +69,7 @@
                         </div>
                         <div class="bet-input-group">
                             <label for="patti-numbers">পাত্তি নাম্বার (কমা দিয়ে):</label>
-                            <input type="text" id="patti-numbers" placeholder="যেমন: 123, 456, 789">
+                            <input type="text" id="patti-numbers" placeholder="যেমন: 123, 456">
                             <label for="patti-tokens">টোকেন:</label>
                             <input type="number" id="patti-tokens" min="1" placeholder="টোকেন সংখ্যা">
                             <button id="bet-patti-btn">বেট করুন</button>
@@ -96,7 +96,7 @@
             <section id="user-management">
                 <h2>ইউজার তৈরি করুন</h2>
                 <form id="add-user-form">
-                    <input type="text" id="new-user-email" placeholder="ইমেইল" required>
+                    <input type="email" id="new-user-email" placeholder="ইমেইল" required>
                     <input type="password" id="new-user-password" placeholder="পাসওয়ার্ড" required>
                     <input type="text" id="new-user-name" placeholder="ইউজারের নাম" required>
                     <input type="number" id="initial-tokens" placeholder="শুরুর টোকেন" min="0" required>
@@ -117,18 +117,6 @@
                 <h2>ফলাফল আপডেট করুন</h2>
                 <div id="result-update-area"></div>
                 <button id="update-results-btn">ফলাফল আপডেট করুন</button>
-            </section>
-
-            <section id="report-panel">
-                <h2>রিপোর্ট</h2>
-                <div id="graphs-container"></div>
-            </section>
-            
-            <section id="report-generation">
-                <h2>রিপোর্ট জেনারেট করুন</h2>
-                <input type="date" id="report-date-input" required>
-                <button id="generate-report-btn">রিপোর্ট জেনারেট করুন</button>
-                <div id="report-output"></div>
             </section>
         </div>
     </div>
