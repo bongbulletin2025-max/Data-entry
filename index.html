@@ -70,3 +70,37 @@
     <script src="script.js"></script>
 </body>
 </html>
+    <div id="admin-panel" style="display: none;">
+        <header>
+            <h1>অ্যাডমিন প্যানেল</h1>
+            <button id="admin-logout-btn">লগআউট</button>
+        </header>
+
+        <div class="container">
+            <section id="user-management">
+                <h2>ইউজার তৈরি ও টোকেন যুক্ত করুন</h2>
+                <form id="add-user-form">
+                    <input type="text" id="new-username" placeholder="ইউজারনেম" required>
+                    <input type="password" id="new-password" placeholder="পাসওয়ার্ড" required>
+                    <input type="number" id="initial-tokens" placeholder="শুরুর টোকেন" min="0" required>
+                    <button type="submit">নতুন ইউজার তৈরি করুন</button>
+                </form>
+            </section>
+
+            <section id="result-update">
+                <h2>ফলাফল আপডেট করুন</h2>
+                <div id="result-update-area">
+                    </div>
+                <button id="update-results-btn">ফলাফল আপডেট করুন</button>
+            </section>
+            
+            <section id="report-generation">
+                <h2>রিপোর্ট জেনারেট করুন</h2>
+                <input type="date" id="report-date-input" required>
+                <button id="generate-report-btn">রিপোর্ট জেনারেট করুন</button>
+                <div id="report-output">
+                    </div>
+            </section>
+        </div>
+    </div>
+
