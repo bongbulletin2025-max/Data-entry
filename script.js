@@ -47,7 +47,7 @@ auth.onAuthStateChanged(user => {
                 fetchUserData(user.uid);
                 fetchResults();
                 checkBettingTime();
-                setInterval(checkBettingTime, 60000); // Check every minute
+                setInterval(checkBettingTime, 10000); // Check every 10 seconds
             }
         });
     } else {
@@ -74,26 +74,42 @@ adminLogoutBtn.addEventListener('click', () => auth.signOut());
 // Betting Time Check
 const checkBettingTime = () => {
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-
     let isBettingOpen = false;
-    for (const timeStr of gameSchedule) {
+
+    // Find the next upcoming game
+    let nextGameIndex = -1;
+    for (let i = 0; i < gameSchedule.length; i++) {
+        const timeStr = gameSchedule[i];
         const [time, period] = timeStr.split(' ');
         let [hour, minute] = time.split(':').map(Number);
         if (period === 'PM' && hour !== 12) hour += 12;
         if (period === 'AM' && hour === 12) hour = 0;
 
-        const betCloseHour = hour;
-        const betCloseMinute = minute - 20;
+        const gameTime = new Date();
+        gameTime.setHours(hour, minute, 0, 0);
 
-        const isBeforeGame = currentHour < hour || (currentHour === hour && currentMinute < minute);
-        const isAfterGameClosed = currentHour > betCloseHour || (currentHour === betCloseHour && currentMinute > betCloseMinute);
-
-        if (isAfterGameClosed && isBeforeGame) {
-            isBettingOpen = true;
+        if (now < gameTime) {
+            nextGameIndex = i;
             break;
         }
+    }
+
+    if (nextGameIndex !== -1) {
+        const timeStr = gameSchedule[nextGameIndex];
+        const [time, period] = timeStr.split(' ');
+        let [hour, minute] = time.split(':').map(Number);
+        if (period === 'PM' && hour !== 12) hour += 12;
+        if (period === 'AM' && hour === 12) hour = 0;
+
+        const bettingCloseTime = new Date();
+        bettingCloseTime.setHours(hour, minute - 20, 0, 0);
+
+        if (now < bettingCloseTime) {
+            isBettingOpen = true;
+        }
+    } else {
+        // All games for today are over, so allow betting for the next day's first game
+        isBettingOpen = true;
     }
 
     if (isBettingOpen) {
@@ -128,7 +144,6 @@ const fetchResults = () => {
 
 const renderResults = (results) => {
     resultsContainer.innerHTML = '';
-    
     gameSchedule.forEach((time, index) => {
         const result = results[index];
         const resultBox = document.createElement('div');
@@ -154,6 +169,9 @@ betSingleBtn.addEventListener('click', async () => {
 
         await db.runTransaction(async (transaction) => {
             const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists) {
+                throw "ইউজার ডেটা খুঁজে পাওয়া যায়নি!";
+            }
             const currentTokens = userDoc.data().tokens;
 
             if (currentTokens >= tokens) {
@@ -170,6 +188,43 @@ betSingleBtn.addEventListener('click', async () => {
                     gameTime: betTime
                 });
                 alert('আপনার বেট সফল হয়েছে!');
+            } else {
+                alert('আপনার টোকেন যথেষ্ট নয়।');
+            }
+        });
+    }
+});
+
+betPattiBtn.addEventListener('click', async () => {
+    const pattiNumbers = pattiNumbersInput.value;
+    const tokens = parseInt(pattiTokensInput.value);
+    
+    if (pattiNumbers && tokens > 0 && auth.currentUser) {
+        const userId = auth.currentUser.uid;
+        const userRef = db.collection('users').doc(userId);
+        const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+
+        await db.runTransaction(async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists) {
+                throw "ইউজার ডেটা খুঁজে পাওয়া যায়নি!";
+            }
+            const currentTokens = userDoc.data().tokens;
+
+            if (currentTokens >= tokens) {
+                const newTokens = currentTokens - tokens;
+                transaction.update(userRef, { tokens: newTokens });
+                
+                const betRef = db.collection('bets').doc();
+                transaction.set(betRef, {
+                    userId: userId,
+                    type: 'patti',
+                    numbers: pattiNumbers.split(',').map(n => n.trim()),
+                    tokens: tokens,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    gameTime: betTime
+                });
+                alert('আপনার পাত্তি বেট সফল হয়েছে!');
             } else {
                 alert('আপনার টোকেন যথেষ্ট নয়।');
             }
@@ -204,9 +259,23 @@ adduserForm.addEventListener('submit', (e) => {
     const newUserName = document.getElementById('new-user-name').value;
     const initialTokens = parseInt(document.getElementById('initial-tokens').value);
 
-    // This part requires Cloud Functions, so we will use manual creation
-    alert('নতুন ইউজার তৈরির জন্য Cloud Function প্রয়োজন। অনুগ্রহ করে Firebase Authentication এ ম্যানুয়ালি ইউজার তৈরি করুন।');
+    auth.createUserWithEmailAndPassword(newUserEmail, newUserPassword)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            db.collection('users').doc(user.uid).set({
+                name: newUserName,
+                email: newUserEmail,
+                tokens: initialTokens,
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert('নতুন ইউজার সফলভাবে তৈরি হয়েছে!');
+            });
+        })
+        .catch((error) => {
+            alert('ইউজার তৈরি করতে ব্যর্থ: ' + error.message);
+        });
 });
+
 
 // Admin Add Token
 addTokenForm.addEventListener('submit', async (e) => {
@@ -253,7 +322,3 @@ updateResultsBtn.addEventListener('click', async () => {
         } catch (error) {
             alert('ফলাফল আপডেট করতে ব্যর্থ: ' + error.message);
         }
-    } else {
-        alert('কোনো ফলাফল প্রবেশ করানো হয়নি!');
-    }
-});
