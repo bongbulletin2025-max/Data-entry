@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -29,7 +30,7 @@
         <div class="container">
             <h2>লগইন</h2>
             <form id="login-form">
-                <input type="email" id="username" placeholder="ইউজারনেম" required>
+                <input type="email" id="username" placeholder="ইমেইল" required>
                 <input type="password" id="password" placeholder="পাসওয়ার্ড" required>
                 <button type="submit">লগইন করুন</button>
             </form>
@@ -40,8 +41,7 @@
         <header>
             <h1>The Lucky Number</h1>
             <div id="user-info">
-                <span id="user-name"></span> |
-                টোকেন: <span id="user-tokens"></span>
+                <span id="user-name"></span> | টোকেন: <span id="user-tokens"></span>
             </div>
             <button id="logout-btn">লগআউট</button>
         </header>
@@ -113,10 +113,27 @@
                 </form>
             </section>
 
+            <section id="graphs-section">
+                <h2>রিয়েল-টাইম বেটিং রিপোর্ট</h2>
+                <div class="graph-container">
+                    <h3>সিঙ্গেল নাম্বার বেট</h3>
+                    <canvas id="singleBetChart"></canvas>
+                </div>
+                <div class="patti-info">
+                    <h3>খেলা হয়েছে এমন পাত্তি</h3>
+                    <ul id="pattiList"></ul>
+                </div>
+            </section>
+
             <section id="result-update">
                 <h2>ফলাফল আপডেট করুন</h2>
                 <div id="result-update-area"></div>
                 <button id="update-results-btn">ফলাফল আপডেট করুন</button>
+            </section>
+
+            <section id="reports-section">
+                <h2>রিপোর্টস</h2>
+                <button id="generate-user-report-btn">ইউজার রিপোর্ট জেনারেট করুন</button>
             </section>
         </div>
     </div>
