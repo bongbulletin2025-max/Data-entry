@@ -49,6 +49,8 @@ auth.onAuthStateChanged(user => {
                 checkBettingTime();
                 setInterval(checkBettingTime, 10000); // Check every 10 seconds
             }
+        }).catch(error => {
+            alert("অ্যাডমিন ডেটা অ্যাক্সেস করতে ব্যর্থ: " + error.message);
         });
     } else {
         loginPage.style.display = 'flex';
@@ -60,11 +62,11 @@ auth.onAuthStateChanged(user => {
 // Login and Logout Functions
 loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const username = document.getElementById('username').value;
+    const email = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    auth.signInWithEmailAndPassword(username, password)
+    auth.signInWithEmailAndPassword(email, password)
         .catch(error => {
-            alert("লগইন ব্যর্থ হয়েছে: " + error.message);
+            alert("লগইন ব্যর্থ হয়েছে: " + error.code + " - " + error.message);
         });
 });
 
@@ -162,11 +164,16 @@ betSingleBtn.addEventListener('click', async () => {
     const singleNumber = singleNumberInput.value;
     const tokens = parseInt(singleTokensInput.value);
     
-    if (singleNumber && tokens > 0 && auth.currentUser) {
-        const userId = auth.currentUser.uid;
-        const userRef = db.collection('users').doc(userId);
-        const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+    if (!singleNumber || tokens <= 0 || !auth.currentUser) {
+        alert("বেট করার জন্য সিঙ্গেল নাম্বার এবং টোকেন সংখ্যা সঠিকভাবে পূরণ করুন।");
+        return;
+    }
 
+    const userId = auth.currentUser.uid;
+    const userRef = db.collection('users').doc(userId);
+    const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+
+    try {
         await db.runTransaction(async (transaction) => {
             const userDoc = await transaction.get(userRef);
             if (!userDoc.exists) {
@@ -187,23 +194,30 @@ betSingleBtn.addEventListener('click', async () => {
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     gameTime: betTime
                 });
-                alert('আপনার বেট সফল হয়েছে!');
             } else {
-                alert('আপনার টোকেন যথেষ্ট নয়।');
+                throw new Error('আপনার টোকেন যথেষ্ট নয়।');
             }
         });
+        alert('আপনার বেট সফল হয়েছে!');
+    } catch (error) {
+        alert("বেট করতে ব্যর্থ: " + error.message);
     }
 });
 
 betPattiBtn.addEventListener('click', async () => {
     const pattiNumbers = pattiNumbersInput.value;
     const tokens = parseInt(pattiTokensInput.value);
-    
-    if (pattiNumbers && tokens > 0 && auth.currentUser) {
-        const userId = auth.currentUser.uid;
-        const userRef = db.collection('users').doc(userId);
-        const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
 
+    if (!pattiNumbers || tokens <= 0 || !auth.currentUser) {
+        alert("বেট করার জন্য পাত্তি নাম্বার এবং টোকেন সংখ্যা সঠিকভাবে পূরণ করুন।");
+        return;
+    }
+    
+    const userId = auth.currentUser.uid;
+    const userRef = db.collection('users').doc(userId);
+    const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+
+    try {
         await db.runTransaction(async (transaction) => {
             const userDoc = await transaction.get(userRef);
             if (!userDoc.exists) {
@@ -224,11 +238,13 @@ betPattiBtn.addEventListener('click', async () => {
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     gameTime: betTime
                 });
-                alert('আপনার পাত্তি বেট সফল হয়েছে!');
             } else {
-                alert('আপনার টোকেন যথেষ্ট নয়।');
+                throw new Error('আপনার টোকেন যথেষ্ট নয়।');
             }
         });
+        alert('আপনার পাত্তি বেট সফল হয়েছে!');
+    } catch (error) {
+        alert("বেট করতে ব্যর্থ: " + error.message);
     }
 });
 
@@ -322,3 +338,7 @@ updateResultsBtn.addEventListener('click', async () => {
         } catch (error) {
             alert('ফলাফল আপডেট করতে ব্যর্থ: ' + error.message);
         }
+    } else {
+        alert('কোনো ফলাফল প্রবেশ করানো হয়নি!');
+    }
+});
