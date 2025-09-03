@@ -1,4 +1,16 @@
-// Firebase SDKs এবং ডেটাবেস ভেরিয়েবল
+// আপনার Firebase কনফিগারেশন
+const firebaseConfig = {
+  apiKey: "AIzaSyDMrTQqAao4-zLcCTqlPnUi019muQK9kvE",
+  authDomain: "data-entry-3b50f.firebaseapp.com",
+  projectId: "data-entry-3b50f",
+  storageBucket: "data-entry-3b50f.firebasestorage.app",
+  messagingSenderId: "1022730252825",
+  appId: "1:1022730252825:web:b3a85e4f7d55e62d15f088",
+  measurementId: "G-2KJP9Q59XP"
+};
+
+// Firebase SDK এবং ভেরিয়েবল
+const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -19,7 +31,7 @@ const pattiNumbersInput = document.getElementById('patti-numbers');
 const pattiTokensInput = document.getElementById('patti-tokens');
 const historyList = document.getElementById('history-list');
 
-// Firebase Auth State Observer: ব্যবহারকারী লগইন করা আছে কিনা তা চেক করে
+// Firebase Auth State Observer
 auth.onAuthStateChanged(user => {
     if (user) {
         loginPage.style.display = 'none';
@@ -38,7 +50,6 @@ loginForm.addEventListener('submit', (e) => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-    // Firebase Auth ব্যবহার করে লগইন
     auth.signInWithEmailAndPassword(username + '@example.com', password)
         .then(() => {
             console.log("Logged in successfully!");
@@ -60,7 +71,6 @@ const fetchUserData = (userId) => {
             const data = doc.data();
             userNameSpan.textContent = data.name;
             userTokensSpan.textContent = data.tokens;
-            // টোকেন হিস্ট্রি Fetch করার জন্য এখানে একটি ফাংশন যুক্ত হবে
             fetchHistory(userId);
         }
     });
@@ -93,25 +103,54 @@ const renderResults = (results) => {
 
 // টোকেন হিস্ট্রি Fetch করার ফাংশন
 const fetchHistory = (userId) => {
-    // এখানে Firebase থেকে টোকেন হিস্ট্রি Fetch করার লজিক থাকবে
+    // এখানে টোকেন হিস্ট্রি Fetch করার লজিক থাকবে
 };
 
 // বেট করার ফাংশন (সিঙ্গেল)
 betSingleBtn.addEventListener('click', () => {
     const number = singleNumberInput.value;
     const tokens = parseInt(singleTokensInput.value);
-    // এখানে সিঙ্গেল বেটিং লজিক থাকবে
+    
+    if (auth.currentUser && number && tokens > 0) {
+        // ডেটাবেসে বেট যুক্ত করা
+        db.collection('bets').add({
+            userId: auth.currentUser.uid,
+            betType: 'single',
+            number: number,
+            tokens: tokens,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert('আপনার বেট সফল হয়েছে!');
+            // টোকেন মাইনাস করার লজিক এখানে থাকবে
+        }).catch(error => {
+            alert('বেট করতে ব্যর্থ হয়েছে: ' + error.message);
+        });
+    } else {
+        alert('সঠিক নাম্বার ও টোকেন দিন।');
+    }
 });
 
 // বেট করার ফাংশন (পাত্তি)
 betPattiBtn.addEventListener('click', () => {
     const numbers = pattiNumbersInput.value;
     const tokens = parseInt(pattiTokensInput.value);
-    // এখানে পাত্তি বেটিং লজিক থাকবে
-});
-// বেট করার ফাংশন (পাত্তি)
-betPattiBtn.addEventListener('click', () => {
-    const numbers = pattiNumbersInput.value;
-    const tokens = parseInt(pattiTokensInput.value);
-    // এখানে পাত্তি বেটিং লজিক থাকবে
+
+    if (auth.currentUser && numbers && tokens > 0) {
+        const pattiList = numbers.split(',').map(s => s.trim());
+        // ডেটাবেসে বেট যুক্ত করা
+        db.collection('bets').add({
+            userId: auth.currentUser.uid,
+            betType: 'patti',
+            numbers: pattiList,
+            tokens: tokens,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert('আপনার বেট সফল হয়েছে!');
+            // টোকেন মাইনাস করার লজিক এখানে থাকবে
+        }).catch(error => {
+            alert('বেট করতে ব্যর্থ হয়েছে: ' + error.message);
+        });
+    } else {
+        alert('সঠিক পাত্তি নাম্বার ও টোকেন দিন।');
+    }
 });
