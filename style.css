@@ -143,3 +143,26 @@ section {
         margin-top: 10px;
     }
 }
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Admin Panel Specific Styles */
+#admin-panel header {
+    background-color: #e67e22;
+    border-color: #d35400;
+}
+
+#admin-panel header h1 {
+    color: white;
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+    #user-info, #logout-btn, #admin-logout-btn {
+        margin-top: 10px;
+    }
+}
