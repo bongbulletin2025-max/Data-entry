@@ -265,6 +265,8 @@ const setupAdminPanel = () => {
         `;
         resultUpdateArea.appendChild(inputGroup);
     });
+
+    setupGraphs();
 };
 
 // Admin User Creation
@@ -342,3 +344,79 @@ updateResultsBtn.addEventListener('click', async () => {
         alert('কোনো ফলাফল প্রবেশ করানো হয়নি!');
     }
 });
+
+// New section for Graphs
+const setupGraphs = () => {
+    // Aggregating bet data for singles
+    db.collection('bets').onSnapshot(snapshot => {
+        const singleBetData = {};
+        for (let i = 0; i <= 9; i++) {
+            singleBetData[i] = 0;
+        }
+
+        const pattiList = new Set();
+        
+        snapshot.docs.forEach(doc => {
+            const bet = doc.data();
+            if (bet.type === 'single') {
+                const number = bet.number;
+                if (singleBetData[number] !== undefined) {
+                    singleBetData[number] += bet.tokens;
+                }
+            } else if (bet.type === 'patti') {
+                bet.numbers.forEach(patti => {
+                    pattiList.add(patti);
+                });
+            }
+        });
+
+        // Update the Single Bet Chart
+        const chartData = {
+            labels: Object.keys(singleBetData),
+            datasets: [{
+                label: 'টোকেন সংখ্যা',
+                data: Object.values(singleBetData),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const config = {
+            type: 'bar',
+            data: chartData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        const existingChart = Chart.getChart("singleBetChart");
+        if (existingChart) {
+            existingChart.destroy();
+        }
+        
+        const singleBetChart = new Chart(
+            document.getElementById('singleBetChart'),
+            config
+        );
+
+        // Update the Patti List
+        const pattiUl = document.getElementById('pattiList');
+        pattiUl.innerHTML = '';
+        if (pattiList.size > 0) {
+            pattiList.forEach(patti => {
+                const li = document.createElement('li');
+                li.textContent = patti;
+                pattiUl.appendChild(li);
+            });
+        } else {
+            const li = document.createElement('li');
+            li.textContent = 'কোনো পাত্তি খেলা হয়নি।';
+            pattiUl.appendChild(li);
+        }
+    });
+};
