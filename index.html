@@ -9,6 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+</head>
+<body>
 
     <script>
         const firebaseConfig = {
@@ -22,8 +24,6 @@
         };
         firebase.initializeApp(firebaseConfig);
     </script>
-</head>
-<body>
 
     <div id="login-page">
         <div class="container">
@@ -56,20 +56,24 @@
             <section id="betting-area">
                 <h2>বেট করুন</h2>
                 <div class="betting-form">
-                    <div class="bet-input-group">
-                        <label for="single-number">সিঙ্গেল নাম্বার (0-9):</label>
-                        <input type="text" id="single-number" placeholder="যেমন: 7">
-                        <label for="single-tokens">টোকেন:</label>
-                        <input type="number" id="single-tokens" min="1" placeholder="টোকেন সংখ্যা">
-                        <button id="bet-single-btn">বেট করুন</button>
+                    <div id="betting-closed-message" style="display: none;">
+                        <p>এই খেলার বেটিং এখন বন্ধ আছে।</p>
                     </div>
-
-                    <div class="bet-input-group">
-                        <label for="patti-numbers">পাত্তি নাম্বার (কমা দিয়ে):</label>
-                        <input type="text" id="patti-numbers" placeholder="যেমন: 123, 456, 789">
-                        <label for="patti-tokens">টোকেন:</label>
-                        <input type="number" id="patti-tokens" min="1" placeholder="টোকেন সংখ্যা">
-                        <button id="bet-patti-btn">বেট করুন</button>
+                    <div id="betting-open-area">
+                        <div class="bet-input-group">
+                            <label for="single-number">সিঙ্গেল নাম্বার (0-9):</label>
+                            <input type="text" id="single-number" placeholder="যেমন: 7">
+                            <label for="single-tokens">টোকেন:</label>
+                            <input type="number" id="single-tokens" min="1" placeholder="টোকেন সংখ্যা">
+                            <button id="bet-single-btn">বেট করুন</button>
+                        </div>
+                        <div class="bet-input-group">
+                            <label for="patti-numbers">পাত্তি নাম্বার (কমা দিয়ে):</label>
+                            <input type="text" id="patti-numbers" placeholder="যেমন: 123, 456, 789">
+                            <label for="patti-tokens">টোকেন:</label>
+                            <input type="number" id="patti-tokens" min="1" placeholder="টোকেন সংখ্যা">
+                            <button id="bet-patti-btn">বেট করুন</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -90,12 +94,22 @@
 
         <div class="container">
             <section id="user-management">
-                <h2>ইউজার তৈরি ও টোকেন যুক্ত করুন</h2>
+                <h2>ইউজার তৈরি করুন</h2>
                 <form id="add-user-form">
-                    <input type="text" id="new-username" placeholder="ইউজারনেম" required>
-                    <input type="password" id="new-password" placeholder="পাসওয়ার্ড" required>
+                    <input type="text" id="new-user-email" placeholder="ইমেইল" required>
+                    <input type="password" id="new-user-password" placeholder="পাসওয়ার্ড" required>
+                    <input type="text" id="new-user-name" placeholder="ইউজারের নাম" required>
                     <input type="number" id="initial-tokens" placeholder="শুরুর টোকেন" min="0" required>
                     <button type="submit">নতুন ইউজার তৈরি করুন</button>
+                </form>
+            </section>
+
+            <section id="token-management">
+                <h2>টোকেন অ্যাড করুন</h2>
+                <form id="add-token-form">
+                    <input type="email" id="user-email-to-add-token" placeholder="ইউজার ইমেইল" required>
+                    <input type="number" id="tokens-to-add" placeholder="টোকেন সংখ্যা" min="1" required>
+                    <button type="submit">টোকেন অ্যাড করুন</button>
                 </form>
             </section>
 
@@ -103,6 +117,11 @@
                 <h2>ফলাফল আপডেট করুন</h2>
                 <div id="result-update-area"></div>
                 <button id="update-results-btn">ফলাফল আপডেট করুন</button>
+            </section>
+
+            <section id="report-panel">
+                <h2>রিপোর্ট</h2>
+                <div id="graphs-container"></div>
             </section>
             
             <section id="report-generation">
