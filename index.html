@@ -516,21 +516,25 @@
                 const newUserName = document.getElementById('new-user-name').value;
                 const initialTokens = parseInt(document.getElementById('initial-tokens').value);
 
-                if (!auth.currentUser || !doc(db, 'admins', auth.currentUser.uid)) {
-                    alert('You do not have permission to create a user.');
-                    return;
-                }
-                
                 try {
                     const userCredential = await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
                     const user = userCredential.user;
-                    await setDoc(doc(db, 'users', user.uid), {
-                        name: newUserName,
-                        email: newUserEmail,
-                        tokens: initialTokens,
-                        created_at: new Date()
-                    });
-                    alert('New user created successfully!');
+                    
+                    const adminDocRef = doc(db, 'admins', auth.currentUser.uid);
+                    const adminDoc = await getDoc(adminDocRef);
+                    
+                    if (adminDoc.exists()) {
+                        await setDoc(doc(db, 'users', user.uid), {
+                            name: newUserName,
+                            email: newUserEmail,
+                            tokens: initialTokens,
+                            created_at: new Date()
+                        });
+                        alert('New user created successfully!');
+                    } else {
+                        alert('You do not have permission to create a user.');
+                    }
+
                 } catch (error) {
                     alert('Failed to create user: ' + error.message);
                 }
