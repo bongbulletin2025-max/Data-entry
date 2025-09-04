@@ -4,140 +4,278 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Lucky Number</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .user-app, .admin-panel, .login-page {
+            padding: 20px;
+        }
+
+        .login-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .login-page form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        input[type="email"], input[type="password"], input[type="number"], input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .user-info {
+            background-color: #e0f7fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .betting-section {
+            display: grid;
+            gap: 20px;
+        }
+
+        .bet-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .results-section {
+            margin-top: 20px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .result-box {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .result-box h3, .result-box p {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .admin-panel {
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            background-color: #ddd;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tab-button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-page" id="login-page">
+        <h2>Login to your account</h2>
+        <form id="login-form">
+            <input type="email" id="username" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Log In</button>
+        </form>
+    </div>
+
+    <div class="user-app" id="main-app" style="display: none;">
+        <div class="header">
+            <h1>The Lucky Number</h1>
+            <button id="logout-btn">Log Out</button>
+        </div>
+        <div class="user-info">
+            <p>Name: <span id="user-name">Loading...</span></p>
+            <p>Tokens: <span id="user-tokens">Loading...</span></p>
+        </div>
+
+        <div class="betting-section">
+            <h3>Place Your Bet</h3>
+            <div class="bet-input-group">
+                <label for="single-number">Single Number (0-9):</label>
+                <input type="number" id="single-number" min="0" max="9" required>
+                <label for="single-tokens">Tokens:</label>
+                <input type="number" id="single-tokens" min="1" required>
+                <button id="bet-single-btn">Bet on Single</button>
+            </div>
+            <div class="bet-input-group">
+                <label for="patti-numbers">Patti Numbers (comma-separated):</label>
+                <input type="text" id="patti-numbers" placeholder="e.g., 123, 456" required>
+                <label for="patti-tokens">Tokens:</label>
+                <input type="number" id="patti-tokens" min="1" required>
+                <button id="bet-patti-btn">Bet on Patti</button>
+            </div>
+        </div>
+
+        <div class="betting-time">
+            <p id="betting-open-area">Betting is **OPEN** now!</p>
+            <p id="betting-closed-message" style="display: none;">Betting is **CLOSED** now.</p>
+        </div>
+
+        <div class="results-section">
+            <h3>Today's Results</h3>
+            <p>Date: <span id="result-date">Loading...</span></p>
+            <div class="results-grid" id="results-container">
+                </div>
+        </div>
+        <button id="generate-user-report-btn">Generate My Report</button>
+    </div>
+
+    <div class="admin-panel" id="admin-panel" style="display:none;">
+        <div class="header">
+            <h2>Admin Panel</h2>
+            <button id="admin-logout-btn">Log Out</button>
+        </div>
+    
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('result-entry-tab')">Result Entry</button>
+            <button class="tab-button" onclick="showTab('dealer-management-tab')">Dealer Management</button>
+            <button class="tab-button" onclick="showTab('reports-tab')">Reports</button>
+        </div>
+    
+        <div id="result-entry-tab" class="tab-content active">
+            <h3>Update Results</h3>
+            <div id="result-update-area">
+                </div>
+            <button id="update-results-btn">Update Results</button>
+        </div>
+    
+        <div id="dealer-management-tab" class="tab-content">
+            <h3>Create User</h3>
+            <form id="add-user-form">
+                <input type="email" id="new-user-email" placeholder="Email" required>
+                <input type="password" id="new-user-password" placeholder="Password" required>
+                <input type="text" id="new-user-name" placeholder="Name" required>
+                <input type="number" id="initial-tokens" placeholder="Initial Tokens" required>
+                <button type="submit">Create New User</button>
+            </form>
+    
+            <hr>
+    
+            <h3>Add Tokens</h3>
+            <form id="add-token-form">
+                <input type="email" id="user-email-to-add-token" placeholder="User Email" required>
+                <input type="number" id="tokens-to-add" placeholder="Tokens to Add" required>
+                <button type="submit">Add Tokens</button>
+            </form>
+        </div>
+    
+        <div id="reports-tab" class="tab-content">
+            <h3>Real-time Betting Report</h3>
+            <div class="report-section">
+                <h4>Single Betting Graph</h4>
+                <canvas id="singleBetChart"></canvas>
+            </div>
+            <div class="report-section">
+                <h4>Patti List</h4>
+                <ul id="pattiList"></ul>
+            </div>
+            <div class="report-section">
+                <h4>Full Report</h4>
+                <button id="generate-report-btn">Generate Report</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-
+    <script src="your-script.js"></script>
     <script>
+        // Your Firebase config object goes here
         const firebaseConfig = {
-          apiKey: "AIzaSyDMrTQqAao4-zLcCTqlPnUi019muQK9kvE",
-          authDomain: "data-entry-3b50f.firebaseapp.com",
-          projectId: "data-entry-3b50f",
-          storageBucket: "data-entry-3b50f.firebasestorage.app",
-          messagingSenderId: "1022730252825",
-          appId: "1:1022730252825:web:b3a85e4f7d55e62d15f088",
-          measurementId: "G-2KJP9Q59XP"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         firebase.initializeApp(firebaseConfig);
     </script>
-
-    <div id="login-page">
-        <div class="container">
-            <h2>লগইন</h2>
-            <form id="login-form">
-                <input type="email" id="username" placeholder="ইমেইল" required>
-                <input type="password" id="password" placeholder="পাসওয়ার্ড" required>
-                <button type="submit">লগইন করুন</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="main-app" style="display: none;">
-        <header>
-            <h1>The Lucky Number</h1>
-            <div id="user-info">
-                <span id="user-name"></span> | টোকেন: <span id="user-tokens"></span>
-            </div>
-            <button id="logout-btn">লগআউট</button>
-        </header>
-
-        <div class="container">
-            <section id="results">
-                <h2>আজকের রেজাল্ট</h2>
-                <p>তারিখ: <span id="result-date"></span></p>
-                <div id="results-container"></div>
-            </section>
-
-            <section id="betting-area">
-                <h2>বেট করুন</h2>
-                <div class="betting-form">
-                    <div id="betting-closed-message" style="display: none;">
-                        <p>এই খেলার বেটিং এখন বন্ধ আছে। পরবর্তী খেলা শুরু হলে বেটিং আবার শুরু হবে।</p>
-                    </div>
-                    <div id="betting-open-area">
-                        <div class="bet-input-group">
-                            <label for="single-number">সিঙ্গেল নাম্বার (0-9):</label>
-                            <input type="text" id="single-number" placeholder="যেমন: 7">
-                            <label for="single-tokens">টোকেন:</label>
-                            <input type="number" id="single-tokens" min="1" placeholder="টোকেন সংখ্যা">
-                            <button id="bet-single-btn">বেট করুন</button>
-                        </div>
-                        <div class="bet-input-group">
-                            <label for="patti-numbers">পাত্তি নাম্বার (কমা দিয়ে):</label>
-                            <input type="text" id="patti-numbers" placeholder="যেমন: 123, 456">
-                            <label for="patti-tokens">টোকেন:</label>
-                            <input type="number" id="patti-tokens" min="1" placeholder="টোকেন সংখ্যা">
-                            <button id="bet-patti-btn">বেট করুন</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="history">
-                <h2>টোকেন হিস্ট্রি এবং রিপোর্ট</h2>
-                <div id="history-list"></div>
-                <button id="generate-report-btn">রিপোর্ট জেনারেট করুন</button>
-            </section>
-        </div>
-    </div>
-
-    <div id="admin-panel" style="display: none;">
-        <header>
-            <h1>অ্যাডমিন প্যানেল</h1>
-            <button id="admin-logout-btn">লগআউট</button>
-        </header>
-
-        <div class="container">
-            <section id="user-management">
-                <h2>ইউজার তৈরি করুন</h2>
-                <form id="add-user-form">
-                    <input type="email" id="new-user-email" placeholder="ইমেইল" required>
-                    <input type="password" id="new-user-password" placeholder="পাসওয়ার্ড" required>
-                    <input type="text" id="new-user-name" placeholder="ইউজারের নাম" required>
-                    <input type="number" id="initial-tokens" placeholder="শুরুর টোকেন" min="0" required>
-                    <button type="submit">নতুন ইউজার তৈরি করুন</button>
-                </form>
-            </section>
-
-            <section id="token-management">
-                <h2>টোকেন অ্যাড করুন</h2>
-                <form id="add-token-form">
-                    <input type="email" id="user-email-to-add-token" placeholder="ইউজার ইমেইল" required>
-                    <input type="number" id="tokens-to-add" placeholder="টোকেন সংখ্যা" min="1" required>
-                    <button type="submit">টোকেন অ্যাড করুন</button>
-                </form>
-            </section>
-
-            <section id="graphs-section">
-                <h2>রিয়েল-টাইম বেটিং রিপোর্ট</h2>
-                <div class="graph-container">
-                    <h3>সিঙ্গেল নাম্বার বেট</h3>
-                    <canvas id="singleBetChart"></canvas>
-                </div>
-                <div class="patti-info">
-                    <h3>খেলা হয়েছে এমন পাত্তি</h3>
-                    <ul id="pattiList"></ul>
-                </div>
-            </section>
-
-            <section id="result-update">
-                <h2>ফলাফল আপডেট করুন</h2>
-                <div id="result-update-area"></div>
-                <button id="update-results-btn">ফলাফল আপডেট করুন</button>
-            </section>
-
-            <section id="reports-section">
-                <h2>রিপোর্টস</h2>
-                <button id="generate-user-report-btn">ইউজার রিপোর্ট জেনারেট করুন</button>
-            </section>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
 </body>
 </html>
