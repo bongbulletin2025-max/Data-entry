@@ -1,724 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Lucky Number</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+  <meta charset="UTF-8">
+  <title>Lucky Number Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: #f4f6f9;
+      color: #333;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    h2, h3 {
+      margin-top: 0;
+      color: #444;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul li {
+      background: #f1f1f1;
+      margin: 0.3rem 0;
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .logout {
+      background: #e53935;
+    }
+    .logout:hover {
+      background: #c62828;
+    }
+    .hidden {
+      display: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.6rem;
+      text-align: center;
+    }
+    th {
+      background: #4CAF50;
+      color: white;
+    }
+  </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { 
+      getFirestore, doc, getDoc, updateDoc, addDoc, collection, query, where, onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // 🔹 আপনার Firebase Config (যা আপনি দিয়েছেন)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMrTQqAao4-zLcCTqlPnUi019muQK9kvE",
+      authDomain: "data-entry-3b50f.firebaseapp.com",
+      projectId: "data-entry-3b50f",
+      storageBucket: "data-entry-3b50f.firebasestorage.app",
+      messagingSenderId: "1022730252825",
+      appId: "1:1022730252825:web:b3a85e4f7d55e62d15f088",
+      measurementId: "G-2KJP9Q59XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+
+    // 🔹 Login
+    async function login() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (err) {
+        alert("Login Failed: " + err.message);
+      }
+    }
+
+    // 🔹 Logout
+    async function logout() {
+      await signOut(auth);
+      location.reload();
+    }
+
+    // 🔹 Check Auth State
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById("loginCard").classList.add("hidden");
+
+        // চেক করব সে এডমিন কিনা
+        const adminRef = doc(db, "admins", user.uid);
+        const adminSnap = await getDoc(adminRef);
+
+        if (adminSnap.exists()) {
+          document.getElementById("adminPanel").classList.remove("hidden");
+          loadReports();
+        } else {
+          document.getElementById("playerPanel").classList.remove("hidden");
+          loadBalance(user.uid);
+          loadMyBets(user.uid);
+          loadResults();
         }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .user-app, .admin-panel, .login-page {
-            padding: 20px;
-        }
-        .login-page {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
-        .login-page form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 100%;
-            max-width: 300px;
-        }
-        input[type="email"], input[type="password"], input[type="number"], input[type="text"] {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .user-info {
-            background-color: #e0f7fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .betting-section {
-            display: grid;
-            gap: 20px;
-        }
-        .bet-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .results-section {
-            margin-top: 20px;
-        }
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
-        .result-box {
-            background-color: #f1f1f1;
-            padding: 10px;
-            border-radius: 4px;
-            text-align: center;
-        }
-        .result-box h3, .result-box p {
-            margin: 0;
-            font-weight: bold;
-        }
-        .admin-panel {
-            text-align: center;
-        }
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .tab-button {
-            background-color: #ddd;
-            color: #333;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .tab-button.active {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-    </style>
+      }
+    });
+
+    // =========================
+    // 🔹 Player Functions
+    // =========================
+    async function loadBalance(uid) {
+      const ref = doc(db, "users", uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        document.getElementById("balance").innerText = snap.data().tokens || 0;
+      }
+    }
+
+    async function placeBet() {
+      const number = document.getElementById("betNumber").value;
+      const tokens = parseInt(document.getElementById("betTokens").value);
+
+      const ref = doc(db, "users", currentUser.uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return alert("User not found");
+
+      const balance = snap.data().tokens || 0;
+      if (balance < tokens) {
+        alert("Not enough tokens!");
+        return;
+      }
+
+      await updateDoc(ref, { tokens: balance - tokens });
+      await addDoc(collection(db, "bets"), {
+        userId: currentUser.uid,
+        number: number,
+        tokens: tokens,
+        timestamp: new Date()
+      });
+
+      alert("Bet Placed!");
+      loadBalance(currentUser.uid);
+    }
+
+    function loadMyBets(uid) {
+      const q = query(collection(db, "bets"), where("userId", "==", uid));
+      onSnapshot(q, (snapshot) => {
+        let html = "";
+        snapshot.forEach(doc => {
+          const bet = doc.data();
+          html += `<li>Number: ${bet.number}, Tokens: ${bet.tokens}</li>`;
+        });
+        document.getElementById("myBets").innerHTML = html;
+      });
+    }
+
+    function loadResults() {
+      const q = collection(db, "results");
+      onSnapshot(q, (snapshot) => {
+        let html = "";
+        snapshot.forEach(doc => {
+          const res = doc.data();
+          html += `<li>${doc.id}: ${res.result}</li>`;
+        });
+        document.getElementById("results").innerHTML = html;
+      });
+    }
+
+    // =========================
+    // 🔹 Admin Functions
+    // =========================
+    async function addTokens() {
+      const userId = document.getElementById("tokenUserId").value;
+      const tokens = parseInt(document.getElementById("tokensToAdd").value);
+
+      const ref = doc(db, "users", userId);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return alert("User not found");
+
+      const balance = snap.data().tokens || 0;
+      await updateDoc(ref, { tokens: balance + tokens });
+      alert("Tokens Added!");
+    }
+
+    async function declareResult() {
+      const gameId = document.getElementById("gameId").value;
+      const result = document.getElementById("winningNumber").value;
+
+      await updateDoc(doc(db, "results", gameId), {
+        result: result
+      });
+      alert("Result Declared!");
+    }
+
+    function loadReports() {
+      const q = collection(db, "bets");
+      onSnapshot(q, (snapshot) => {
+        let html = "<table><tr><th>User</th><th>Number</th><th>Tokens</th></tr>";
+        snapshot.forEach(doc => {
+          const bet = doc.data();
+          html += `<tr><td>${bet.userId}</td><td>${bet.number}</td><td>${bet.tokens}</td></tr>`;
+        });
+        html += "</table>";
+        document.getElementById("reports").innerHTML = html;
+      });
+    }
+
+    // Expose
+    window.login = login;
+    window.logout = logout;
+    window.placeBet = placeBet;
+    window.addTokens = addTokens;
+    window.declareResult = declareResult;
+  </script>
 </head>
 <body>
-    <div class="login-page" id="login-page">
-        <h2>Login</h2>
-        <form id="login-form">
-            <input type="email" id="username" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
+  <header>Lucky Number Game</header>
+  <div class="container">
+
+    <!-- Login -->
+    <div id="loginCard" class="card">
+      <h2>Login</h2>
+      <input id="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
+      <button onclick="login()">Login</button>
     </div>
 
-    <div class="user-app" id="main-app" style="display: none;">
-        <div class="header">
-            <h1>The Lucky Number</h1>
-            <button id="logout-btn">Logout</button>
-        </div>
-        <div class="user-info">
-            <p>Name: <span id="user-name">Loading...</span></p>
-            <p>Tokens: <span id="user-tokens">Loading...</span></p>
-        </div>
-        <div class="betting-section">
-            <h3>Place Your Bet</h3>
-            <div class="bet-input-group">
-                <label for="single-number">Single Number (0-9):</label>
-                <input type="number" id="single-number" min="0" max="9" required>
-                <label for="single-tokens">Tokens:</label>
-                <input type="number" id="single-tokens" min="1" required>
-                <button id="bet-single-btn">Bet on Single</button>
-            </div>
-            <div class="bet-input-group">
-                <label for="patti-numbers">Patti Numbers (comma-separated):</label>
-                <input type="text" id="patti-numbers" placeholder="e.g., 123, 456" required>
-                <label for="patti-tokens">Tokens:</label>
-                <input type="number" id="patti-tokens" min="1" required>
-                <button id="bet-patti-btn">Bet on Patti</button>
-            </div>
-        </div>
-        <div class="betting-time">
-            <p id="betting-open-area">Betting is **OPEN** now!</p>
-            <p id="betting-closed-message" style="display: none;">Betting is **CLOSED** now.</p>
-        </div>
-        <div class="results-section">
-            <h3>Today's Results</h3>
-            <p>Date: <span id="result-date">Loading...</span></p>
-            <div class="results-grid" id="results-container">
-            </div>
-        </div>
-        <button id="generate-user-report-btn">Generate My Report</button>
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden">
+      <div class="card">
+        <h2>Admin Panel</h2>
+        <button class="logout" onclick="logout()">Logout</button>
+
+        <h3>Add Tokens</h3>
+        <input id="tokenUserId" placeholder="User ID">
+        <input id="tokensToAdd" type="number" placeholder="Tokens">
+        <button onclick="addTokens()">Add</button>
+      </div>
+
+      <div class="card">
+        <h3>Declare Result</h3>
+        <input id="gameId" placeholder="Game ID">
+        <input id="winningNumber" placeholder="Winning Number">
+        <button onclick="declareResult()">Declare</button>
+      </div>
+
+      <div class="card">
+        <h3>Reports</h3>
+        <div id="reports"></div>
+      </div>
     </div>
 
-    <div class="admin-panel" id="admin-panel" style="display:none;">
-        <div class="header">
-            <h2>Admin Panel</h2>
-            <button id="admin-logout-btn">Logout</button>
-        </div>
-        <div class="tabs">
-            <button class="tab-button active" onclick="showTab('result-entry-tab')">Result Entry</button>
-            <button class="tab-button" onclick="showTab('dealer-management-tab')">Dealer Management</button>
-            <button class="tab-button" onclick="showTab('reports-tab')">Reports</button>
-        </div>
-        <div id="result-entry-tab" class="tab-content active">
-            <h3>Update Results</h3>
-            <div id="result-update-area">
-            </div>
-            <button id="update-results-btn">Update Results</button>
-        </div>
-        <div id="dealer-management-tab" class="tab-content">
-            <h3>Create User</h3>
-            <form id="add-user-form">
-                <input type="email" id="new-user-email" placeholder="Email" required>
-                <input type="password" id="new-user-password" placeholder="Password" required>
-                <input type="text" id="new-user-name" placeholder="Name" required>
-                <input type="number" id="initial-tokens" placeholder="Initial Tokens" required>
-                <button type="submit">Create New User</button>
-            </form>
-            <hr>
-            <h3>Add Tokens</h3>
-            <form id="add-token-form">
-                <input type="email" id="user-email-to-add-token" placeholder="User Email" required>
-                <input type="number" id="tokens-to-add" placeholder="Tokens to Add" required>
-                <button type="submit">Add Tokens</button>
-            </form>
-        </div>
-        <div id="reports-tab" class="tab-content">
-            <h3>Real-time Betting Report</h3>
-            <div class="report-section">
-                <h4>Single Betting Graph</h4>
-                <canvas id="singleBetChart"></canvas>
-            </div>
-            <div class="report-section">
-                <h4>Played Patti List</h4>
-                <ul id="pattiList"></ul>
-            </div>
-            <div class="report-section">
-                <h4>Generate Full Report</h4>
-                <button id="generate-report-btn">Generate Report</button>
-            </div>
-        </div>
+    <!-- Player Panel -->
+    <div id="playerPanel" class="hidden">
+      <div class="card">
+        <h2>Player Panel</h2>
+        <button class="logout" onclick="logout()">Logout</button>
+        <h3>Balance: <span id="balance">0</span></h3>
+      </div>
+
+      <div class="card">
+        <h3>Place Bet</h3>
+        <input id="betNumber" placeholder="Number 0-9">
+        <input id="betTokens" type="number" placeholder="Tokens">
+        <button onclick="placeBet()">Bet</button>
+      </div>
+
+      <div class="card">
+        <h3>My Bets</h3>
+        <ul id="myBets"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Results</h3>
+        <ul id="results"></ul>
+      </div>
     </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-        import "https://cdn.jsdelivr.net/npm/chart.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDMrTQqAao4-zLcCTqlPnUi019muQK9kvE",
-            authDomain: "data-entry-3b50f.firebaseapp.com",
-            projectId: "data-entry-3b50f",
-            storageBucket: "data-entry-3b50f.firebasestorage.app",
-            messagingSenderId: "1022730252825",
-            appId: "1:1022730252825:web:b3a85e4f7d55e62d15f088",
-            measurementId: "G-2KJP9Q59XP"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        const loginPage = document.getElementById('login-page');
-        const mainApp = document.getElementById('main-app');
-        const adminPanel = document.getElementById('admin-panel');
-        const loginForm = document.getElementById('login-form');
-        const logoutBtn = document.getElementById('logout-btn');
-        const adminLogoutBtn = document.getElementById('admin-logout-btn');
-        const userNameSpan = document.getElementById('user-name');
-        const userTokensSpan = document.getElementById('user-tokens');
-        const resultDateSpan = document.getElementById('result-date');
-        const resultsContainer = document.getElementById('results-container');
-        const betSingleBtn = document.getElementById('bet-single-btn');
-        const betPattiBtn = document.getElementById('bet-patti-btn');
-        const singleNumberInput = document.getElementById('single-number');
-        const singleTokensInput = document.getElementById('single-tokens');
-        const pattiNumbersInput = document.getElementById('patti-numbers');
-        const pattiTokensInput = document.getElementById('patti-tokens');
-        const adduserForm = document.getElementById('add-user-form');
-        const updateResultsBtn = document.getElementById('update-results-btn');
-        const addTokenForm = document.getElementById('add-token-form');
-        const betOpenArea = document.getElementById('betting-open-area');
-        const betClosedMessage = document.getElementById('betting-closed-message');
-        const generateReportBtn = document.getElementById('generate-report-btn');
-        const generateUserReportBtn = document.getElementById('generate-user-report-btn');
-
-        const gameSchedule = [
-            '11:00 AM', '12:30 PM', '2:00 PM', '3:30 PM',
-            '5:00 PM', '6:30 PM', '8:00 PM', '9:00 PM'
-        ];
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const adminDocRef = doc(db, 'admins', user.uid);
-                const adminDoc = await getDoc(adminDocRef);
-                if (adminDoc.exists()) {
-                    loginPage.style.display = 'none';
-                    mainApp.style.display = 'none';
-                    adminPanel.style.display = 'block';
-                    setupAdminPanel();
-                } else {
-                    const userDocRef = doc(db, 'users', user.uid);
-                    const userDoc = await getDoc(userDocRef);
-                    if (userDoc.exists()) {
-                        loginPage.style.display = 'none';
-                        mainApp.style.display = 'block';
-                        adminPanel.style.display = 'none';
-                        fetchUserData(user.uid);
-                        fetchResults();
-                        checkBettingTime();
-                        setInterval(checkBettingTime, 10000);
-                    } else {
-                        signOut(auth);
-                    }
-                }
-            } else {
-                loginPage.style.display = 'flex';
-                mainApp.style.display = 'none';
-                adminPanel.style.display = 'none';
-            }
-        });
-
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, email, password)
-                .catch(error => {
-                    alert("Login failed: " + error.code + " - " + error.message);
-                });
-        });
-
-        logoutBtn.addEventListener('click', () => signOut(auth));
-        adminLogoutBtn.addEventListener('click', () => signOut(auth));
-
-        const checkBettingTime = () => {
-            const now = new Date();
-            let isBettingOpen = false;
-            let nextGameIndex = -1;
-            for (let i = 0; i < gameSchedule.length; i++) {
-                const timeStr = gameSchedule[i];
-                const [time, period] = timeStr.split(' ');
-                let [hour, minute] = time.split(':').map(Number);
-                if (period === 'PM' && hour !== 12) hour += 12;
-                if (period === 'AM' && hour === 12) hour = 0;
-                const gameTime = new Date();
-                gameTime.setHours(hour, minute, 0, 0);
-                if (now < gameTime) {
-                    nextGameIndex = i;
-                    break;
-                }
-            }
-            if (nextGameIndex !== -1) {
-                const timeStr = gameSchedule[nextGameIndex];
-                const [time, period] = timeStr.split(' ');
-                let [hour, minute] = time.split(':').map(Number);
-                if (period === 'PM' && hour !== 12) hour += 12;
-                if (period === 'AM' && hour === 12) hour = 0;
-                const bettingCloseTime = new Date();
-                bettingCloseTime.setHours(hour, minute - 20, 0, 0);
-                if (now < bettingCloseTime) {
-                    isBettingOpen = true;
-                }
-            } else {
-                isBettingOpen = true;
-            }
-            if (isBettingOpen) {
-                betOpenArea.style.display = 'block';
-                betClosedMessage.style.display = 'none';
-            } else {
-                betOpenArea.style.display = 'none';
-                betClosedMessage.style.display = 'block';
-            }
-        };
-
-        const fetchUserData = (userId) => {
-            onSnapshot(doc(db, 'users', userId), (docSnapshot) => {
-                if (docSnapshot.exists()) {
-                    const data = docSnapshot.data();
-                    userNameSpan.textContent = data.name;
-                    userTokensSpan.textContent = data.tokens;
-                }
-            });
-        };
-
-        const fetchResults = () => {
-            onSnapshot(doc(db, 'results', 'today'), (docSnapshot) => {
-                if (docSnapshot.exists()) {
-                    const data = docSnapshot.data();
-                    resultDateSpan.textContent = data.date;
-                    renderResults(data.games);
-                }
-            });
-        };
-
-        const renderResults = (results) => {
-            resultsContainer.innerHTML = '';
-            gameSchedule.forEach((time, index) => {
-                const result = results[index];
-                const resultBox = document.createElement('div');
-                resultBox.className = 'result-box';
-                resultBox.innerHTML = `
-                    <h3>${result ? result.patti : '---'}</h3>
-                    <p>${result ? result.single : '---'}</p>
-                    <small>${time}</small>
-                `;
-                resultsContainer.appendChild(resultBox);
-            });
-        };
-
-        if (betSingleBtn) {
-            betSingleBtn.addEventListener('click', async () => {
-                const singleNumber = singleNumberInput.value;
-                const tokens = parseInt(singleTokensInput.value);
-                if (!singleNumber || tokens <= 0 || !auth.currentUser) {
-                    alert("Please provide a valid single number and token amount.");
-                    return;
-                }
-                const userId = auth.currentUser.uid;
-                const userRef = doc(db, 'users', userId);
-                const betTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                try {
-                    await runTransaction(db, async (transaction) => {
-                        const userDoc = await transaction.get(userRef);
-                        if (!userDoc.exists()) {
-                            throw "User data not found!";
-                        }
-                        const currentTokens = userDoc.data().tokens;
-                        if (currentTokens >= tokens) {
-                            const newTokens = currentTokens - tokens;
-                            transaction.update(userRef, { tokens: newTokens });
-                            const betRef = doc(collection(db, 'bets'));
-                            transaction.set(betRef, {
-                                userId: userId,
-                                type: 'single',
-                                number: singleNumber,
-                                tokens: tokens,
-                                timestamp: new Date(),
-                                gameTime: betTime
-                            });
-                        } else {
-                            throw new Error('You do not have enough tokens.');
-                        }
-                    });
-                    alert('Your bet was successful!');
-                } catch (error) {
-                    alert("Failed to place bet: " + error.message);
-                }
-            });
-        }
-        if (betPattiBtn) {
-            betPattiBtn.addEventListener('click', async () => {
-                const pattiNumbers = pattiNumbersInput.value;
-                const tokens = parseInt(pattiTokensInput.value);
-                if (!pattiNumbers || tokens <= 0 || !auth.currentUser) {
-                    alert("Please provide valid patti numbers and token amount.");
-                    return;
-                }
-                const userId = auth.currentUser.uid;
-                const userRef = doc(db, 'users', userId);
-                const betTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                try {
-                    await runTransaction(db, async (transaction) => {
-                        const userDoc = await transaction.get(userRef);
-                        if (!userDoc.exists()) {
-                            throw "User data not found!";
-                        }
-                        const currentTokens = userDoc.data().tokens;
-                        if (currentTokens >= tokens) {
-                            const newTokens = currentTokens - tokens;
-                            transaction.update(userRef, { tokens: newTokens });
-                            const betRef = doc(collection(db, 'bets'));
-                            transaction.set(betRef, {
-                                userId: userId,
-                                type: 'patti',
-                                numbers: pattiNumbers.split(',').map(n => n.trim()),
-                                tokens: tokens,
-                                timestamp: new Date(),
-                                gameTime: betTime
-                            });
-                        } else {
-                            throw new Error('You do not have enough tokens.');
-                        }
-                    });
-                    alert('Your patti bet was successful!');
-                } catch (error) {
-                    alert("Failed to place patti bet: " + error.message);
-                }
-            });
-        }
-
-        window.showTab = function(tabId) {
-            const tabs = document.querySelectorAll('.tab-content');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
-        };
-
-        const setupAdminPanel = () => {
-            const resultUpdateArea = document.getElementById('result-entry-tab').querySelector('#result-update-area');
-            resultUpdateArea.innerHTML = '';
-            gameSchedule.forEach((time, index) => {
-                const inputGroup = document.createElement('div');
-                inputGroup.className = 'bet-input-group';
-                inputGroup.innerHTML = `
-                    <h3>${time}</h3>
-                    <label for="patti-${index}">Patti:</label>
-                    <input type="text" id="patti-${index}" placeholder="e.g., 123">
-                    <label for="single-${index}">Single:</label>
-                    <input type="text" id="single-${index}" placeholder="e.g., 7">
-                `;
-                resultUpdateArea.appendChild(inputGroup);
-            });
-            setupGraphs();
-        };
-
-        if (adduserForm) {
-            adduserForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const newUserEmail = document.getElementById('new-user-email').value;
-                const newUserPassword = document.getElementById('new-user-password').value;
-                const newUserName = document.getElementById('new-user-name').value;
-                const initialTokens = parseInt(document.getElementById('initial-tokens').value);
-
-                try {
-                    const userCredential = await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
-                    const user = userCredential.user;
-                    
-                    const adminDocRef = doc(db, 'admins', auth.currentUser.uid);
-                    const adminDoc = await getDoc(adminDocRef);
-                    
-                    if (adminDoc.exists()) {
-                        await setDoc(doc(db, 'users', user.uid), {
-                            name: newUserName,
-                            email: newUserEmail,
-                            tokens: initialTokens,
-                            created_at: new Date()
-                        });
-                        alert('New user created successfully!');
-                    } else {
-                        alert('You do not have permission to create a user.');
-                    }
-
-                } catch (error) {
-                    alert('Failed to create user: ' + error.message);
-                }
-            });
-        }
-        
-        if (addTokenForm) {
-            addTokenForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const userEmail = document.getElementById('user-email-to-add-token').value;
-                const tokensToAdd = parseInt(document.getElementById('tokens-to-add').value);
-
-                if (!auth.currentUser || !doc(db, 'admins', auth.currentUser.uid)) {
-                    alert('You do not have permission to add tokens.');
-                    return;
-                }
-
-                try {
-                    const usersRef = collection(db, 'users');
-                    const q = query(usersRef, where('email', '==', userEmail));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        const userDoc = querySnapshot.docs[0];
-                        const userRef = userDoc.ref;
-                        const currentTokens = userDoc.data().tokens;
-                        const newTokens = currentTokens + tokensToAdd;
-                        await updateDoc(userRef, { tokens: newTokens });
-                        alert('Tokens added successfully!');
-                    } else {
-                        alert('No user found with this email.');
-                    }
-                } catch (error) {
-                    alert('Failed to add tokens: ' + error.message);
-                }
-            });
-        }
-
-        if (updateResultsBtn) {
-            updateResultsBtn.addEventListener('click', async () => {
-                const results = [];
-                gameSchedule.forEach((time, index) => {
-                    const patti = document.getElementById(`patti-${index}`).value;
-                    const single = document.getElementById(`single-${index}`).value;
-                    if (patti && single) {
-                        results.push({ patti: patti, single: single });
-                    }
-                });
-                if (results.length > 0) {
-                    try {
-                        await setDoc(doc(db, 'results', 'today'), {
-                            date: new Date().toLocaleDateString('en-US'),
-                            games: results
-                        });
-                        alert('Results updated successfully!');
-                    } catch (error) {
-                        alert('Failed to update results: ' + error.message);
-                    }
-                } else {
-                    alert('No results entered!');
-                }
-            });
-        }
-
-        const setupGraphs = () => {
-            onSnapshot(collection(db, 'bets'), (snapshot) => {
-                const singleBetData = {};
-                for (let i = 0; i <= 9; i++) {
-                    singleBetData[i] = 0;
-                }
-                const pattiList = new Set();
-                snapshot.docs.forEach(doc => {
-                    const bet = doc.data();
-                    if (bet.type === 'single') {
-                        const number = bet.number;
-                        if (singleBetData[number] !== undefined) {
-                            singleBetData[number] += bet.tokens;
-                        }
-                    } else if (bet.type === 'patti') {
-                        bet.numbers.forEach(patti => {
-                            pattiList.add(patti);
-                        });
-                    }
-                });
-                const chartData = {
-                    labels: Object.keys(singleBetData),
-                    datasets: [{
-                        label: 'Tokens',
-                        data: Object.values(singleBetData),
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                };
-                const config = {
-                    type: 'bar',
-                    data: chartData,
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                };
-                const existingChart = Chart.getChart("singleBetChart");
-                if (existingChart) {
-                    existingChart.destroy();
-                }
-                const singleBetChart = new Chart(
-                    document.getElementById('singleBetChart'),
-                    config
-                );
-                const pattiUl = document.getElementById('pattiList');
-                pattiUl.innerHTML = '';
-                if (pattiList.size > 0) {
-                    pattiList.forEach(patti => {
-                        const li = document.createElement('li');
-                        li.textContent = patti;
-                        pattiUl.appendChild(li);
-                    });
-                } else {
-                    const li = document.createElement('li');
-                    li.textContent = 'No patti bets have been placed.';
-                    pattiUl.appendChild(li);
-                }
-            });
-        };
-        if (generateUserReportBtn) {
-            generateUserReportBtn.addEventListener('click', async () => {
-                if (!auth.currentUser) {
-                    alert("You must be logged in to view reports.");
-                    return;
-                }
-                const userId = auth.currentUser.uid;
-                const betsRef = collection(db, 'bets');
-                const q = query(betsRef, where('userId', '==', userId));
-                const bets = await getDocs(q);
-                let report = "Your Betting Report:\n\n";
-                if (bets.empty) {
-                    report += "No bets found.";
-                } else {
-                    bets.docs.forEach(doc => {
-                        const bet = doc.data();
-                        report += `Type: ${bet.type}\n`;
-                        report += `Number(s): ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
-                        report += `Tokens: ${bet.tokens}\n`;
-                        report += `Time: ${bet.gameTime}\n`;
-                        report += "--------------------\n";
-                    });
-                }
-                alert(report);
-            });
-        }
-        if (generateReportBtn) {
-            generateReportBtn.addEventListener('click', async () => {
-                if (!auth.currentUser) {
-                    alert("You must be logged in to view reports.");
-                    return;
-                }
-                const userId = auth.currentUser.uid;
-                const isAdminSnapshot = await getDoc(doc(db, 'admins', userId));
-                if (!isAdminSnapshot.exists()) {
-                    alert("You do not have permission to view this report.");
-                    return;
-                }
-                const bets = await getDocs(collection(db, 'bets'));
-                let report = "Full Betting Report:\n\n";
-                if (bets.empty) {
-                    report += "No bets found.";
-                } else {
-                    bets.docs.forEach(doc => {
-                        const bet = doc.data();
-                        report += `User ID: ${bet.userId}\n`;
-                        report += `Type: ${bet.type}\n`;
-                        report += `Number(s): ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
-                        report += `Tokens: ${bet.tokens}\n`;
-                        report += `Time: ${bet.gameTime}\n`;
-                        report += "--------------------\n";
-                    });
-                }
-                alert(report);
-            });
-        }
-    </script>
+  </div>
 </body>
 </html>
