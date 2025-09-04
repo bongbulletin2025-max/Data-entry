@@ -59,7 +59,7 @@ auth.onAuthStateChanged(user => {
                 });
             }
         }).catch(error => {
-            alert("ডেটা অ্যাক্সেস করতে ব্যর্থ: " + error.message);
+            console.error("Error checking user role:", error);
             auth.signOut();
         });
     } else {
@@ -76,7 +76,7 @@ loginForm.addEventListener('submit', (e) => {
     const password = document.getElementById('password').value;
     auth.signInWithEmailAndPassword(email, password)
         .catch(error => {
-            alert("লগইন ব্যর্থ হয়েছে: " + error.code + " - " + error.message);
+            alert("Login Failed: " + error.code + " - " + error.message);
         });
 });
 
@@ -88,7 +88,6 @@ const checkBettingTime = () => {
     const now = new Date();
     let isBettingOpen = false;
 
-    // Find the next upcoming game
     let nextGameIndex = -1;
     for (let i = 0; i < gameSchedule.length; i++) {
         const timeStr = gameSchedule[i];
@@ -120,7 +119,6 @@ const checkBettingTime = () => {
             isBettingOpen = true;
         }
     } else {
-        // All games for today are over, so allow betting for the next day's first game
         isBettingOpen = true;
     }
 
@@ -170,97 +168,112 @@ const renderResults = (results) => {
 };
 
 // Betting Functions
-betSingleBtn.addEventListener('click', async () => {
-    const singleNumber = singleNumberInput.value;
-    const tokens = parseInt(singleTokensInput.value);
-    
-    if (!singleNumber || tokens <= 0 || !auth.currentUser) {
-        alert("বেট করার জন্য সিঙ্গেল নাম্বার এবং টোকেন সংখ্যা সঠিকভাবে পূরণ করুন।");
-        return;
-    }
+if (betSingleBtn) {
+    betSingleBtn.addEventListener('click', async () => {
+        const singleNumber = singleNumberInput.value;
+        const tokens = parseInt(singleTokensInput.value);
+        
+        if (!singleNumber || tokens <= 0 || !auth.currentUser) {
+            alert("Please provide a valid single number and token amount.");
+            return;
+        }
 
-    const userId = auth.currentUser.uid;
-    const userRef = db.collection('users').doc(userId);
-    const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+        const userId = auth.currentUser.uid;
+        const userRef = db.collection('users').doc(userId);
+        const betTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    try {
-        await db.runTransaction(async (transaction) => {
-            const userDoc = await transaction.get(userRef);
-            if (!userDoc.exists) {
-                throw "ইউজার ডেটা খুঁজে পাওয়া যায়নি!";
-            }
-            const currentTokens = userDoc.data().tokens;
+        try {
+            await db.runTransaction(async (transaction) => {
+                const userDoc = await transaction.get(userRef);
+                if (!userDoc.exists) {
+                    throw "User data not found!";
+                }
+                const currentTokens = userDoc.data().tokens;
 
-            if (currentTokens >= tokens) {
-                const newTokens = currentTokens - tokens;
-                transaction.update(userRef, { tokens: newTokens });
-                
-                const betRef = db.collection('bets').doc();
-                transaction.set(betRef, {
-                    userId: userId,
-                    type: 'single',
-                    number: singleNumber,
-                    tokens: tokens,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    gameTime: betTime
-                });
-            } else {
-                throw new Error('আপনার টোকেন যথেষ্ট নয়।');
-            }
-        });
-        alert('আপনার বেট সফল হয়েছে!');
-    } catch (error) {
-        alert("বেট করতে ব্যর্থ: " + error.message);
-    }
-});
+                if (currentTokens >= tokens) {
+                    const newTokens = currentTokens - tokens;
+                    transaction.update(userRef, { tokens: newTokens });
+                    
+                    const betRef = db.collection('bets').doc();
+                    transaction.set(betRef, {
+                        userId: userId,
+                        type: 'single',
+                        number: singleNumber,
+                        tokens: tokens,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        gameTime: betTime
+                    });
+                } else {
+                    throw new Error('You do not have enough tokens.');
+                }
+            });
+            alert('Your bet was successful!');
+        } catch (error) {
+            alert("Failed to place bet: " + error.message);
+        }
+    });
+}
 
-betPattiBtn.addEventListener('click', async () => {
-    const pattiNumbers = pattiNumbersInput.value;
-    const tokens = parseInt(pattiTokensInput.value);
+if (betPattiBtn) {
+    betPattiBtn.addEventListener('click', async () => {
+        const pattiNumbers = pattiNumbersInput.value;
+        const tokens = parseInt(pattiTokensInput.value);
 
-    if (!pattiNumbers || tokens <= 0 || !auth.currentUser) {
-        alert("বেট করার জন্য পাত্তি নাম্বার এবং টোকেন সংখ্যা সঠিকভাবে পূরণ করুন।");
-        return;
-    }
-    
-    const userId = auth.currentUser.uid;
-    const userRef = db.collection('users').doc(userId);
-    const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+        if (!pattiNumbers || tokens <= 0 || !auth.currentUser) {
+            alert("Please provide valid patti numbers and token amount.");
+            return;
+        }
+        
+        const userId = auth.currentUser.uid;
+        const userRef = db.collection('users').doc(userId);
+        const betTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    try {
-        await db.runTransaction(async (transaction) => {
-            const userDoc = await transaction.get(userRef);
-            if (!userDoc.exists) {
-                throw "ইউজার ডেটা খুঁজে পাওয়া যায়নি!";
-            }
-            const currentTokens = userDoc.data().tokens;
+        try {
+            await db.runTransaction(async (transaction) => {
+                const userDoc = await transaction.get(userRef);
+                if (!userDoc.exists) {
+                    throw "User data not found!";
+                }
+                const currentTokens = userDoc.data().tokens;
 
-            if (currentTokens >= tokens) {
-                const newTokens = currentTokens - tokens;
-                transaction.update(userRef, { tokens: newTokens });
-                
-                const betRef = db.collection('bets').doc();
-                transaction.set(betRef, {
-                    userId: userId,
-                    type: 'patti',
-                    numbers: pattiNumbers.split(',').map(n => n.trim()),
-                    tokens: tokens,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    gameTime: betTime
-                });
-            } else {
-                throw new Error('আপনার টোকেন যথেষ্ট নয়।');
-            }
-        });
-        alert('আপনার পাত্তি বেট সফল হয়েছে!');
-    } catch (error) {
-        alert("বেট করতে ব্যর্থ: " + error.message);
-    }
-});
+                if (currentTokens >= tokens) {
+                    const newTokens = currentTokens - tokens;
+                    transaction.update(userRef, { tokens: newTokens });
+                    
+                    const betRef = db.collection('bets').doc();
+                    transaction.set(betRef, {
+                        userId: userId,
+                        type: 'patti',
+                        numbers: pattiNumbers.split(',').map(n => n.trim()),
+                        tokens: tokens,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        gameTime: betTime
+                    });
+                } else {
+                    throw new Error('You do not have enough tokens.');
+                }
+            });
+            alert('Your patti bet was successful!');
+        } catch (error) {
+            alert("Failed to place patti bet: " + error.message);
+        }
+    });
+}
+
+// Admin Tab and Panel Logic
+function showTab(tabId) {
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+}
 
 // Admin Panel Functions
 const setupAdminPanel = () => {
-    const resultUpdateArea = document.getElementById('result-update-area');
+    const resultUpdateArea = document.getElementById('result-entry-tab').querySelector('#result-update-area');
     resultUpdateArea.innerHTML = '';
     
     gameSchedule.forEach((time, index) => {
@@ -268,92 +281,96 @@ const setupAdminPanel = () => {
         inputGroup.className = 'bet-input-group';
         inputGroup.innerHTML = `
             <h3>${time}</h3>
-            <label for="patti-${index}">পাত্তি:</label>
-            <input type="text" id="patti-${index}" placeholder="যেমন: 123">
-            <label for="single-${index}">সিঙ্গেল:</label>
-            <input type="text" id="single-${index}" placeholder="যেমন: 7">
+            <label for="patti-${index}">Patti:</label>
+            <input type="text" id="patti-${index}" placeholder="e.g., 123">
+            <label for="single-${index}">Single:</label>
+            <input type="text" id="single-${index}" placeholder="e.g., 7">
         `;
         resultUpdateArea.appendChild(inputGroup);
     });
 
+    // Setup graphs and reports once the admin panel is shown
     setupGraphs();
 };
 
 // Admin User Creation
-adduserForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newUserEmail = document.getElementById('new-user-email').value;
-    const newUserPassword = document.getElementById('new-user-password').value;
-    const newUserName = document.getElementById('new-user-name').value;
-    const initialTokens = parseInt(document.getElementById('initial-tokens').value);
+if (adduserForm) {
+    adduserForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newUserEmail = document.getElementById('new-user-email').value;
+        const newUserPassword = document.getElementById('new-user-password').value;
+        const newUserName = document.getElementById('new-user-name').value;
+        const initialTokens = parseInt(document.getElementById('initial-tokens').value);
 
-    auth.createUserWithEmailAndPassword(newUserEmail, newUserPassword)
-        .then((userCredential) => {
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(newUserEmail, newUserPassword);
             const user = userCredential.user;
-            db.collection('users').doc(user.uid).set({
+            await db.collection('users').doc(user.uid).set({
                 name: newUserName,
                 email: newUserEmail,
                 tokens: initialTokens,
                 created_at: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                alert('নতুন ইউজার সফলভাবে তৈরি হয়েছে!');
             });
-        })
-        .catch((error) => {
-            alert('ইউজার তৈরি করতে ব্যর্থ: ' + error.message);
-        });
-});
-
-
-// Admin Add Token
-addTokenForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const userEmail = document.getElementById('user-email-to-add-token').value;
-    const tokensToAdd = parseInt(document.getElementById('tokens-to-add').value);
-
-    try {
-        const querySnapshot = await db.collection('users').where('email', '==', userEmail).get();
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userRef = userDoc.ref;
-            const currentTokens = userDoc.data().tokens;
-            const newTokens = currentTokens + tokensToAdd;
-
-            await userRef.update({ tokens: newTokens });
-            alert('সফলভাবে টোকেন অ্যাড করা হয়েছে!');
-        } else {
-            alert('এই ইমেলের কোনো ইউজার খুঁজে পাওয়া যায়নি।');
-        }
-    } catch (error) {
-        alert('টোকেন অ্যাড করতে ব্যর্থ: ' + error.message);
-    }
-});
-
-// Admin Result Update
-updateResultsBtn.addEventListener('click', async () => {
-    const results = [];
-    gameSchedule.forEach((time, index) => {
-        const patti = document.getElementById(`patti-${index}`).value;
-        const single = document.getElementById(`single-${index}`).value;
-        if (patti && single) {
-            results.push({ patti: patti, single: single });
+            alert('New user created successfully!');
+        } catch (error) {
+            alert('Failed to create user: ' + error.message);
         }
     });
-    
-    if (results.length > 0) {
+}
+
+// Admin Add Token
+if (addTokenForm) {
+    addTokenForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userEmail = document.getElementById('user-email-to-add-token').value;
+        const tokensToAdd = parseInt(document.getElementById('tokens-to-add').value);
+
         try {
-            await db.collection('results').doc('today').set({
-                date: new Date().toLocaleDateString('bn-BD'),
-                games: results
-            });
-            alert('ফলাফল সফলভাবে আপডেট হয়েছে!');
+            const querySnapshot = await db.collection('users').where('email', '==', userEmail).get();
+            if (!querySnapshot.empty) {
+                const userDoc = querySnapshot.docs[0];
+                const userRef = userDoc.ref;
+                const currentTokens = userDoc.data().tokens;
+                const newTokens = currentTokens + tokensToAdd;
+
+                await userRef.update({ tokens: newTokens });
+                alert('Tokens added successfully!');
+            } else {
+                alert('No user found with this email.');
+            }
         } catch (error) {
-            alert('ফলাফল আপডেট করতে ব্যর্থ: ' + error.message);
+            alert('Failed to add tokens: ' + error.message);
         }
-    } else {
-        alert('কোনো ফলাফল প্রবেশ করানো হয়নি!');
-    }
-});
+    });
+}
+
+// Admin Result Update
+if (updateResultsBtn) {
+    updateResultsBtn.addEventListener('click', async () => {
+        const results = [];
+        gameSchedule.forEach((time, index) => {
+            const patti = document.getElementById(`patti-${index}`).value;
+            const single = document.getElementById(`single-${index}`).value;
+            if (patti && single) {
+                results.push({ patti: patti, single: single });
+            }
+        });
+        
+        if (results.length > 0) {
+            try {
+                await db.collection('results').doc('today').set({
+                    date: new Date().toLocaleDateString('en-US'),
+                    games: results
+                });
+                alert('Results updated successfully!');
+            } catch (error) {
+                alert('Failed to update results: ' + error.message);
+            }
+        } else {
+            alert('No results entered!');
+        }
+    });
+}
 
 // New section for Graphs
 const setupGraphs = () => {
@@ -384,7 +401,7 @@ const setupGraphs = () => {
         const chartData = {
             labels: Object.keys(singleBetData),
             datasets: [{
-                label: 'টোকেন সংখ্যা',
+                label: 'Tokens',
                 data: Object.values(singleBetData),
                 backgroundColor: 'rgba(54, 162, 235, 0.6)',
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -425,64 +442,95 @@ const setupGraphs = () => {
             });
         } else {
             const li = document.createElement('li');
-            li.textContent = 'কোনো পাত্তি খেলা হয়নি।';
+            li.textContent = 'No patti bets have been placed.';
             pattiUl.appendChild(li);
         }
     });
 };
 
 // Report Generation
-generateUserReportBtn.addEventListener('click', async () => {
-    if (!auth.currentUser) {
-        alert("রিপোর্ট দেখতে আপনাকে লগইন করতে হবে।");
-        return;
-    }
-    const userId = auth.currentUser.uid;
-    const bets = await db.collection('bets').where('userId', '==', userId).get();
-    
-    let report = "আপনার বেটিং রিপোর্ট:\n\n";
-    if (bets.empty) {
-        report += "কোনো বেট খুঁজে পাওয়া যায়নি।";
-    } else {
-        bets.docs.forEach(doc => {
-            const bet = doc.data();
-            report += `টাইপ: ${bet.type}\n`;
-            report += `নাম্বার: ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
-            report += `টোকেন: ${bet.tokens}\n`;
-            report += `সময়: ${bet.gameTime}\n`;
-            report += "--------------------\n";
-        });
-    }
-    alert(report);
-});
+if (generateUserReportBtn) {
+    generateUserReportBtn.addEventListener('click', async () => {
+        if (!auth.currentUser) {
+            alert("You must be logged in to view reports.");
+            return;
+        }
+        const userId = auth.currentUser.uid;
+        const bets = await db.collection('bets').where('userId', '==', userId).get();
+        
+        let report = "Your Betting Report:\n\n";
+        if (bets.empty) {
+            report += "No bets found.";
+        } else {
+            bets.docs.forEach(doc => {
+                const bet = doc.data();
+                report += `Type: ${bet.type}\n`;
+                report += `Number(s): ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
+                report += `Tokens: ${bet.tokens}\n`;
+                report += `Time: ${bet.gameTime}\n`;
+                report += "--------------------\n";
+            });
+        }
+        alert(report);
+    });
+}
 
-generateReportBtn.addEventListener('click', async () => {
-    if (!auth.currentUser) {
-        alert("রিপোর্ট দেখতে আপনাকে লগইন করতে হবে।");
-        return;
-    }
-    const userId = auth.currentUser.uid;
-    const isAdminSnapshot = await db.collection('admins').doc(userId).get();
+if (generateReportBtn) {
+    generateReportBtn.addEventListener('click', async () => {
+        if (!auth.currentUser) {
+            alert("You must be logged in to view reports.");
+            return;
+        }
+        const userId = auth.currentUser.uid;
+        const isAdminSnapshot = await db.collection('admins').doc(userId).get();
 
-    if (!isAdminSnapshot.exists) {
-        alert("এই রিপোর্ট দেখার অনুমতি আপনার নেই।");
-        return;
+        if (!isAdminSnapshot.exists) {
+            alert("You do not have permission to view this report.");
+            return;
+        }
+
+        const bets = await db.collection('bets').get();
+        let report = "Full Betting Report:\n\n";
+        if (bets.empty) {
+            report += "No bets found.";
+        } else {
+            bets.docs.forEach(doc => {
+                const bet = doc.data();
+                report += `User ID: ${bet.userId}\n`;
+                report += `Type: ${bet.type}\n`;
+                report += `Number(s): ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
+                report += `Tokens: ${bet.tokens}\n`;
+                report += `Time: ${bet.gameTime}\n`;
+                report += "--------------------\n";
+            });
+        }
+        alert(report);
+    });
+}
+
+// Function to handle tab clicks
+function showTab(tabId) {
+    // Get all tab content elements and remove the 'active' class
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => {
+        tab.style.display = 'none';
+    });
+
+    // Get all tab button elements and remove the 'active' class
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Add 'active' class to the clicked tab button
+    const clickedTabButton = document.querySelector(`button[onclick="showTab('${tabId}')"]`);
+    if (clickedTabButton) {
+        clickedTabButton.classList.add('active');
     }
 
-    const bets = await db.collection('bets').get();
-    let report = "সম্পূর্ণ বেটিং রিপোর্ট:\n\n";
-    if (bets.empty) {
-        report += "কোনো বেট খুঁজে পাওয়া যায়নি।";
-    } else {
-        bets.docs.forEach(doc => {
-            const bet = doc.data();
-            report += `ইউজার আইডি: ${bet.userId}\n`;
-            report += `টাইপ: ${bet.type}\n`;
-            report += `নাম্বার: ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
-            report += `টোকেন: ${bet.tokens}\n`;
-            report += `সময়: ${bet.gameTime}\n`;
-            report += "--------------------\n";
-        });
+    // Display the selected tab content
+    const selectedTabContent = document.getElementById(tabId);
+    if (selectedTabContent) {
+        selectedTabContent.style.display = 'block';
     }
-    alert(report);
-});
+}
