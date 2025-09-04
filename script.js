@@ -36,30 +36,27 @@ const gameSchedule = [
 // Check Auth State on Load
 auth.onAuthStateChanged(user => {
     if (user) {
-        // Fetch user data from 'admins' and 'users' collections
-        const adminDoc = db.collection('admins').doc(user.uid).get();
-        const userDoc = db.collection('users').doc(user.uid).get();
-
-        Promise.all([adminDoc, userDoc]).then(results => {
-            const isAdmin = results[0].exists;
-            const isUser = results[1].exists;
-
-            if (isAdmin) {
+        db.collection('admins').doc(user.uid).get().then(doc => {
+            if (doc.exists) {
                 loginPage.style.display = 'none';
                 mainApp.style.display = 'none';
                 adminPanel.style.display = 'block';
                 setupAdminPanel();
-            } else if (isUser) {
-                loginPage.style.display = 'none';
-                mainApp.style.display = 'block';
-                adminPanel.style.display = 'none';
-                fetchUserData(user.uid);
-                fetchResults();
-                checkBettingTime();
-                setInterval(checkBettingTime, 10000); // Check every 10 seconds
             } else {
-                // User is authenticated but not in 'admins' or 'users' collection
-                auth.signOut();
+                db.collection('users').doc(user.uid).get().then(userDoc => {
+                    if (userDoc.exists) {
+                        loginPage.style.display = 'none';
+                        mainApp.style.display = 'block';
+                        adminPanel.style.display = 'none';
+                        fetchUserData(user.uid);
+                        fetchResults();
+                        checkBettingTime();
+                        setInterval(checkBettingTime, 10000); // Check every 10 seconds
+                    } else {
+                        // User is authenticated but not in 'admins' or 'users' collection
+                        auth.signOut();
+                    }
+                });
             }
         }).catch(error => {
             alert("ডেটা অ্যাক্সেস করতে ব্যর্থ: " + error.message);
@@ -489,4 +486,3 @@ generateReportBtn.addEventListener('click', async () => {
     }
     alert(report);
 });
-                
