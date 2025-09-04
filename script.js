@@ -24,6 +24,8 @@ const updateResultsBtn = document.getElementById('update-results-btn');
 const addTokenForm = document.getElementById('add-token-form');
 const betOpenArea = document.getElementById('betting-open-area');
 const betClosedMessage = document.getElementById('betting-closed-message');
+const generateReportBtn = document.getElementById('generate-report-btn');
+const generateUserReportBtn = document.getElementById('generate-user-report-btn');
 
 // Time Schedule for Games (as discussed)
 const gameSchedule = [
@@ -420,3 +422,59 @@ const setupGraphs = () => {
         }
     });
 };
+
+// Report Generation
+generateUserReportBtn.addEventListener('click', async () => {
+    if (!auth.currentUser) {
+        alert("রিপোর্ট দেখতে আপনাকে লগইন করতে হবে।");
+        return;
+    }
+    const userId = auth.currentUser.uid;
+    const bets = await db.collection('bets').where('userId', '==', userId).get();
+    
+    let report = "আপনার বেটিং রিপোর্ট:\n\n";
+    if (bets.empty) {
+        report += "কোনো বেট খুঁজে পাওয়া যায়নি।";
+    } else {
+        bets.docs.forEach(doc => {
+            const bet = doc.data();
+            report += `টাইপ: ${bet.type}\n`;
+            report += `নাম্বার: ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
+            report += `টোকেন: ${bet.tokens}\n`;
+            report += `সময়: ${bet.gameTime}\n`;
+            report += "--------------------\n";
+        });
+    }
+    alert(report);
+});
+
+generateReportBtn.addEventListener('click', async () => {
+    if (!auth.currentUser) {
+        alert("রিপোর্ট দেখতে আপনাকে লগইন করতে হবে।");
+        return;
+    }
+    const userId = auth.currentUser.uid;
+    const isAdminSnapshot = await db.collection('admins').doc(userId).get();
+
+    if (!isAdminSnapshot.exists) {
+        alert("এই রিপোর্ট দেখার অনুমতি আপনার নেই।");
+        return;
+    }
+
+    const bets = await db.collection('bets').get();
+    let report = "সম্পূর্ণ বেটিং রিপোর্ট:\n\n";
+    if (bets.empty) {
+        report += "কোনো বেট খুঁজে পাওয়া যায়নি।";
+    } else {
+        bets.docs.forEach(doc => {
+            const bet = doc.data();
+            report += `ইউজার আইডি: ${bet.userId}\n`;
+            report += `টাইপ: ${bet.type}\n`;
+            report += `নাম্বার: ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
+            report += `টোকেন: ${bet.tokens}\n`;
+            report += `সময়: ${bet.gameTime}\n`;
+            report += "--------------------\n";
+        });
+    }
+    alert(report);
+});
