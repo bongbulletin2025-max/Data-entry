@@ -231,12 +231,13 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Firebase configuration
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import "https://cdn.jsdelivr.net/npm/chart.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDMrTQqAao4-zLcCTqlPnUi019muQK9kvE",
             authDomain: "data-entry-3b50f.firebaseapp.com",
@@ -246,10 +247,10 @@
             appId: "1:1022730252825:web:b3a85e4f7d55e62d15f088",
             measurementId: "G-2KJP9Q59XP"
         };
-        firebase.initializeApp(firebaseConfig);
 
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         const loginPage = document.getElementById('login-page');
         const mainApp = document.getElementById('main-app');
@@ -280,33 +281,30 @@
             '5:00 PM', '6:30 PM', '8:00 PM', '9:00 PM'
         ];
 
-        auth.onAuthStateChanged(user => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                db.collection('admins').doc(user.uid).get().then(doc => {
-                    if (doc.exists) {
+                const adminDocRef = doc(db, 'admins', user.uid);
+                const adminDoc = await getDoc(adminDocRef);
+                if (adminDoc.exists()) {
+                    loginPage.style.display = 'none';
+                    mainApp.style.display = 'none';
+                    adminPanel.style.display = 'block';
+                    setupAdminPanel();
+                } else {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
                         loginPage.style.display = 'none';
-                        mainApp.style.display = 'none';
-                        adminPanel.style.display = 'block';
-                        setupAdminPanel();
+                        mainApp.style.display = 'block';
+                        adminPanel.style.display = 'none';
+                        fetchUserData(user.uid);
+                        fetchResults();
+                        checkBettingTime();
+                        setInterval(checkBettingTime, 10000);
                     } else {
-                        db.collection('users').doc(user.uid).get().then(userDoc => {
-                            if (userDoc.exists) {
-                                loginPage.style.display = 'none';
-                                mainApp.style.display = 'block';
-                                adminPanel.style.display = 'none';
-                                fetchUserData(user.uid);
-                                fetchResults();
-                                checkBettingTime();
-                                setInterval(checkBettingTime, 10000);
-                            } else {
-                                auth.signOut();
-                            }
-                        });
+                        signOut(auth);
                     }
-                }).catch(error => {
-                    console.error("Error checking user role:", error);
-                    auth.signOut();
-                });
+                }
             } else {
                 loginPage.style.display = 'flex';
                 mainApp.style.display = 'none';
@@ -318,14 +316,14 @@
             e.preventDefault();
             const email = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, password)
+            signInWithEmailAndPassword(auth, email, password)
                 .catch(error => {
                     alert("Login failed: " + error.code + " - " + error.message);
                 });
         });
 
-        logoutBtn.addEventListener('click', () => auth.signOut());
-        adminLogoutBtn.addEventListener('click', () => auth.signOut());
+        logoutBtn.addEventListener('click', () => signOut(auth));
+        adminLogoutBtn.addEventListener('click', () => signOut(auth));
 
         const checkBettingTime = () => {
             const now = new Date();
@@ -368,9 +366,9 @@
         };
 
         const fetchUserData = (userId) => {
-            db.collection('users').doc(userId).onSnapshot(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
+            onSnapshot(doc(db, 'users', userId), (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
                     userNameSpan.textContent = data.name;
                     userTokensSpan.textContent = data.tokens;
                 }
@@ -378,9 +376,9 @@
         };
 
         const fetchResults = () => {
-            db.collection('results').doc('today').onSnapshot(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
+            onSnapshot(doc(db, 'results', 'today'), (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
                     resultDateSpan.textContent = data.date;
                     renderResults(data.games);
                 }
@@ -411,25 +409,25 @@
                     return;
                 }
                 const userId = auth.currentUser.uid;
-                const userRef = db.collection('users').doc(userId);
+                const userRef = doc(db, 'users', userId);
                 const betTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 try {
-                    await db.runTransaction(async (transaction) => {
+                    await runTransaction(db, async (transaction) => {
                         const userDoc = await transaction.get(userRef);
-                        if (!userDoc.exists) {
+                        if (!userDoc.exists()) {
                             throw "User data not found!";
                         }
                         const currentTokens = userDoc.data().tokens;
                         if (currentTokens >= tokens) {
                             const newTokens = currentTokens - tokens;
                             transaction.update(userRef, { tokens: newTokens });
-                            const betRef = db.collection('bets').doc();
+                            const betRef = doc(collection(db, 'bets'));
                             transaction.set(betRef, {
                                 userId: userId,
                                 type: 'single',
                                 number: singleNumber,
                                 tokens: tokens,
-                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                timestamp: new Date(),
                                 gameTime: betTime
                             });
                         } else {
@@ -451,25 +449,25 @@
                     return;
                 }
                 const userId = auth.currentUser.uid;
-                const userRef = db.collection('users').doc(userId);
+                const userRef = doc(db, 'users', userId);
                 const betTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 try {
-                    await db.runTransaction(async (transaction) => {
+                    await runTransaction(db, async (transaction) => {
                         const userDoc = await transaction.get(userRef);
-                        if (!userDoc.exists) {
+                        if (!userDoc.exists()) {
                             throw "User data not found!";
                         }
                         const currentTokens = userDoc.data().tokens;
                         if (currentTokens >= tokens) {
                             const newTokens = currentTokens - tokens;
                             transaction.update(userRef, { tokens: newTokens });
-                            const betRef = db.collection('bets').doc();
+                            const betRef = doc(collection(db, 'bets'));
                             transaction.set(betRef, {
                                 userId: userId,
                                 type: 'patti',
                                 numbers: pattiNumbers.split(',').map(n => n.trim()),
                                 tokens: tokens,
-                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                timestamp: new Date(),
                                 gameTime: betTime
                             });
                         } else {
@@ -482,14 +480,16 @@
                 }
             });
         }
-        function showTab(tabId) {
+
+        window.showTab = function(tabId) {
             const tabs = document.querySelectorAll('.tab-content');
             tabs.forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             const tabButtons = document.querySelectorAll('.tab-button');
             tabButtons.forEach(btn => btn.classList.remove('active'));
             document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
-        }
+        };
+
         const setupAdminPanel = () => {
             const resultUpdateArea = document.getElementById('result-entry-tab').querySelector('#result-update-area');
             resultUpdateArea.innerHTML = '';
@@ -507,6 +507,7 @@
             });
             setupGraphs();
         };
+
         if (adduserForm) {
             adduserForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -514,14 +515,20 @@
                 const newUserPassword = document.getElementById('new-user-password').value;
                 const newUserName = document.getElementById('new-user-name').value;
                 const initialTokens = parseInt(document.getElementById('initial-tokens').value);
+
+                if (!auth.currentUser || !doc(db, 'admins', auth.currentUser.uid)) {
+                    alert('You do not have permission to create a user.');
+                    return;
+                }
+                
                 try {
-                    const userCredential = await auth.createUserWithEmailAndPassword(newUserEmail, newUserPassword);
+                    const userCredential = await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
                     const user = userCredential.user;
-                    await db.collection('users').doc(user.uid).set({
+                    await setDoc(doc(db, 'users', user.uid), {
                         name: newUserName,
                         email: newUserEmail,
                         tokens: initialTokens,
-                        created_at: firebase.firestore.FieldValue.serverTimestamp()
+                        created_at: new Date()
                     });
                     alert('New user created successfully!');
                 } catch (error) {
@@ -529,19 +536,29 @@
                 }
             });
         }
+        
         if (addTokenForm) {
             addTokenForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const userEmail = document.getElementById('user-email-to-add-token').value;
                 const tokensToAdd = parseInt(document.getElementById('tokens-to-add').value);
+
+                if (!auth.currentUser || !doc(db, 'admins', auth.currentUser.uid)) {
+                    alert('You do not have permission to add tokens.');
+                    return;
+                }
+
                 try {
-                    const querySnapshot = await db.collection('users').where('email', '==', userEmail).get();
+                    const usersRef = collection(db, 'users');
+                    const q = query(usersRef, where('email', '==', userEmail));
+                    const querySnapshot = await getDocs(q);
+
                     if (!querySnapshot.empty) {
                         const userDoc = querySnapshot.docs[0];
                         const userRef = userDoc.ref;
                         const currentTokens = userDoc.data().tokens;
                         const newTokens = currentTokens + tokensToAdd;
-                        await userRef.update({ tokens: newTokens });
+                        await updateDoc(userRef, { tokens: newTokens });
                         alert('Tokens added successfully!');
                     } else {
                         alert('No user found with this email.');
@@ -551,6 +568,7 @@
                 }
             });
         }
+
         if (updateResultsBtn) {
             updateResultsBtn.addEventListener('click', async () => {
                 const results = [];
@@ -563,7 +581,7 @@
                 });
                 if (results.length > 0) {
                     try {
-                        await db.collection('results').doc('today').set({
+                        await setDoc(doc(db, 'results', 'today'), {
                             date: new Date().toLocaleDateString('en-US'),
                             games: results
                         });
@@ -576,8 +594,9 @@
                 }
             });
         }
+
         const setupGraphs = () => {
-            db.collection('bets').onSnapshot(snapshot => {
+            onSnapshot(collection(db, 'bets'), (snapshot) => {
                 const singleBetData = {};
                 for (let i = 0; i <= 9; i++) {
                     singleBetData[i] = 0;
@@ -647,7 +666,9 @@
                     return;
                 }
                 const userId = auth.currentUser.uid;
-                const bets = await db.collection('bets').where('userId', '==', userId).get();
+                const betsRef = collection(db, 'bets');
+                const q = query(betsRef, where('userId', '==', userId));
+                const bets = await getDocs(q);
                 let report = "Your Betting Report:\n\n";
                 if (bets.empty) {
                     report += "No bets found.";
@@ -671,12 +692,12 @@
                     return;
                 }
                 const userId = auth.currentUser.uid;
-                const isAdminSnapshot = await db.collection('admins').doc(userId).get();
-                if (!isAdminSnapshot.exists) {
+                const isAdminSnapshot = await getDoc(doc(db, 'admins', userId));
+                if (!isAdminSnapshot.exists()) {
                     alert("You do not have permission to view this report.");
                     return;
                 }
-                const bets = await db.collection('bets').get();
+                const bets = await getDocs(collection(db, 'bets'));
                 let report = "Full Betting Report:\n\n";
                 if (bets.empty) {
                     report += "No bets found.";
