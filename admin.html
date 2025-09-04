@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <script type="module">
+    // Firebase SDK import
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, addDoc, collection, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // আপনার Firebase Config বসান
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "XXXXXXX",
+      appId: "XXXXXXX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // লগইন
+    async function loginAdmin() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        alert("Admin Login Success!");
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+      } catch (err) {
+        alert("Login Failed: " + err.message);
+      }
+    }
+
+    // নতুন ইউজার তৈরি
+    async function createUser() {
+      const uid = document.getElementById("newUid").value;
+      const username = document.getElementById("newUsername").value;
+      const tokens = parseInt(document.getElementById("newTokens").value);
+
+      await setDoc(doc(db, "users", uid), {
+        username: username,
+        tokens: tokens
+      });
+      alert("User Created!");
+    }
+
+    // টোকেন যোগ করা
+    async function addTokens() {
+      const uid = document.getElementById("tokenUid").value;
+      const amount = parseInt(document.getElementById("tokenAmount").value);
+      const ref = doc(db, "users", uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const newBalance = (snap.data().tokens || 0) + amount;
+        await updateDoc(ref, { tokens: newBalance });
+        alert("Tokens Updated!");
+      } else {
+        alert("User not found");
+      }
+    }
+
+    // রেজাল্ট আপডেট করা
+    async function updateResult() {
+      const round = document.getElementById("round").value;
+      const number = document.getElementById("resultNumber").value;
+      await setDoc(doc(db, "results", round), {
+        result: number,
+        timestamp: new Date()
+      });
+      alert("Result Updated!");
+    }
+
+    // রিয়েলটাইম রিপোর্ট (কোন নাম্বারে কত বেট হয়েছে)
+    onSnapshot(collection(db, "bets"), (snapshot) => {
+      let summary = {};
+      snapshot.forEach(doc => {
+        const bet = doc.data();
+        summary[bet.number] = (summary[bet.number] || 0) + bet.tokens;
+      });
+      let html = "";
+      Object.keys(summary).forEach(num => {
+        html += `<li>Number ${num}: ${summary[num]} tokens</li>`;
+      });
+      document.getElementById("report").innerHTML = html;
+    });
+
+    window.loginAdmin = loginAdmin;
+    window.createUser = createUser;
+    window.addTokens = addTokens;
+    window.updateResult = updateResult;
+  </script>
+</head>
+<body>
+  <h1>Admin Dashboard</h1>
+
+  <div id="loginForm">
+    <input id="email" placeholder="Admin Email"><br>
+    <input id="password" type="password" placeholder="Password"><br>
+    <button onclick="loginAdmin()">Login</button>
+  </div>
+
+  <div id="adminPanel" style="display:none;">
+    <h2>Create User</h2>
+    <input id="newUid" placeholder="User UID"><br>
+    <input id="newUsername" placeholder="Username"><br>
+    <input id="newTokens" placeholder="Initial Tokens" type="number"><br>
+    <button onclick="createUser()">Create</button>
+
+    <h2>Add Tokens</h2>
+    <input id="tokenUid" placeholder="User UID"><br>
+    <input id="tokenAmount" placeholder="Amount" type="number"><br>
+    <button onclick="addTokens()">Add</button>
+
+    <h2>Update Result</h2>
+    <input id="round" placeholder="Round ID"><br>
+    <input id="resultNumber" placeholder="Result Number"><br>
+    <button onclick="updateResult()">Update</button>
+
+    <h2>Reports</h2>
+    <ul id="report"></ul>
+  </div>
+</body>
+</html>
