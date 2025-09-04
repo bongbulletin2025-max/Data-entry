@@ -15,7 +15,6 @@
             align-items: center;
             min-height: 100vh;
         }
-
         .container {
             width: 100%;
             max-width: 500px;
@@ -24,23 +23,22 @@
             border-radius: 8px;
             overflow: hidden;
         }
-
         .header {
             background-color: #4CAF50;
             color: white;
             padding: 15px;
             text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
         .header h1 {
             margin: 0;
             font-size: 24px;
         }
-
         .user-app, .admin-panel, .login-page {
             padding: 20px;
         }
-
         .login-page {
             display: flex;
             flex-direction: column;
@@ -49,7 +47,6 @@
             height: 100vh;
             text-align: center;
         }
-
         .login-page form {
             display: flex;
             flex-direction: column;
@@ -57,13 +54,11 @@
             width: 100%;
             max-width: 300px;
         }
-
         input[type="email"], input[type="password"], input[type="number"], input[type="text"] {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-
         button {
             padding: 10px 15px;
             border: none;
@@ -73,61 +68,50 @@
             cursor: pointer;
             font-size: 16px;
         }
-
         button:hover {
             background-color: #45a049;
         }
-
         .user-info {
             background-color: #e0f7fa;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
         }
-
         .betting-section {
             display: grid;
             gap: 20px;
         }
-
         .bet-input-group {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-
         .results-section {
             margin-top: 20px;
         }
-
         .results-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
         }
-
         .result-box {
             background-color: #f1f1f1;
             padding: 10px;
             border-radius: 4px;
             text-align: center;
         }
-
         .result-box h3, .result-box p {
             margin: 0;
             font-weight: bold;
         }
-
         .admin-panel {
             text-align: center;
         }
-
         .tabs {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
         }
-
         .tab-button {
             background-color: #ddd;
             color: #333;
@@ -136,126 +120,113 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-
         .tab-button.active {
             background-color: #4CAF50;
             color: white;
         }
-
         .tab-content {
             display: none;
         }
-
         .tab-content.active {
             display: block;
         }
     </style>
 </head>
 <body>
-
     <div class="login-page" id="login-page">
-        <h2>Login to your account</h2>
+        <h2>লগইন করুন</h2>
         <form id="login-form">
-            <input type="email" id="username" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Log In</button>
+            <input type="email" id="username" placeholder="ইমেইল" required>
+            <input type="password" id="password" placeholder="পাসওয়ার্ড" required>
+            <button type="submit">লগইন</button>
         </form>
     </div>
 
     <div class="user-app" id="main-app" style="display: none;">
         <div class="header">
-            <h1>The Lucky Number</h1>
-            <button id="logout-btn">Log Out</button>
+            <h1>দ্য লাকি নাম্বার</h1>
+            <button id="logout-btn">লগআউট</button>
         </div>
         <div class="user-info">
-            <p>Name: <span id="user-name">Loading...</span></p>
-            <p>Tokens: <span id="user-tokens">Loading...</span></p>
+            <p>নাম: <span id="user-name">লোড হচ্ছে...</span></p>
+            <p>টোকেন: <span id="user-tokens">লোড হচ্ছে...</span></p>
         </div>
-
         <div class="betting-section">
-            <h3>Place Your Bet</h3>
+            <h3>আপনার বাজি ধরুন</h3>
             <div class="bet-input-group">
-                <label for="single-number">Single Number (0-9):</label>
+                <label for="single-number">সিঙ্গেল নাম্বার (০-৯):</label>
                 <input type="number" id="single-number" min="0" max="9" required>
-                <label for="single-tokens">Tokens:</label>
+                <label for="single-tokens">টোকেন:</label>
                 <input type="number" id="single-tokens" min="1" required>
-                <button id="bet-single-btn">Bet on Single</button>
+                <button id="bet-single-btn">সিঙ্গেলে বাজি ধরুন</button>
             </div>
             <div class="bet-input-group">
-                <label for="patti-numbers">Patti Numbers (comma-separated):</label>
-                <input type="text" id="patti-numbers" placeholder="e.g., 123, 456" required>
-                <label for="patti-tokens">Tokens:</label>
+                <label for="patti-numbers">পাত্তি নাম্বার (কমা দিয়ে):</label>
+                <input type="text" id="patti-numbers" placeholder="যেমন: ১২৩, ৪৫৬" required>
+                <label for="patti-tokens">টোকেন:</label>
                 <input type="number" id="patti-tokens" min="1" required>
-                <button id="bet-patti-btn">Bet on Patti</button>
+                <button id="bet-patti-btn">পাত্তিতে বাজি ধরুন</button>
             </div>
         </div>
-
         <div class="betting-time">
-            <p id="betting-open-area">Betting is **OPEN** now!</p>
-            <p id="betting-closed-message" style="display: none;">Betting is **CLOSED** now.</p>
+            <p id="betting-open-area">বাজি ধরা **এখন খোলা**!</p>
+            <p id="betting-closed-message" style="display: none;">বাজি ধরা **এখন বন্ধ**।</p>
         </div>
-
         <div class="results-section">
-            <h3>Today's Results</h3>
-            <p>Date: <span id="result-date">Loading...</span></p>
+            <h3>আজকের ফলাফল</h3>
+            <p>তারিখ: <span id="result-date">লোড হচ্ছে...</span></p>
             <div class="results-grid" id="results-container">
-                </div>
+            </div>
         </div>
-        <button id="generate-user-report-btn">Generate My Report</button>
+        <button id="generate-user-report-btn">আমার রিপোর্ট দেখুন</button>
     </div>
 
     <div class="admin-panel" id="admin-panel" style="display:none;">
         <div class="header">
-            <h2>Admin Panel</h2>
-            <button id="admin-logout-btn">Log Out</button>
+            <h2>অ্যাডমিন প্যানেল</h2>
+            <button id="admin-logout-btn">লগআউট</button>
         </div>
-    
         <div class="tabs">
-            <button class="tab-button active" onclick="showTab('result-entry-tab')">Result Entry</button>
-            <button class="tab-button" onclick="showTab('dealer-management-tab')">Dealer Management</button>
-            <button class="tab-button" onclick="showTab('reports-tab')">Reports</button>
+            <button class="tab-button active" onclick="showTab('result-entry-tab')">ফলাফল এন্ট্রি</button>
+            <button class="tab-button" onclick="showTab('dealer-management-tab')">ডিলার ম্যানেজমেন্ট</button>
+            <button class="tab-button" onclick="showTab('reports-tab')">রিপোর্টস</button>
         </div>
-    
         <div id="result-entry-tab" class="tab-content active">
-            <h3>Update Results</h3>
+            <h3>ফলাফল আপডেট করুন</h3>
             <div id="result-update-area">
-                </div>
-            <button id="update-results-btn">Update Results</button>
+            </div>
+            <button id="update-results-btn">ফলাফল আপডেট করুন</button>
         </div>
-    
         <div id="dealer-management-tab" class="tab-content">
-            <h3>Create User</h3>
+            <h3>ইউজার তৈরি করুন</h3>
             <form id="add-user-form">
-                <input type="email" id="new-user-email" placeholder="Email" required>
-                <input type="password" id="new-user-password" placeholder="Password" required>
-                <input type="text" id="new-user-name" placeholder="Name" required>
-                <input type="number" id="initial-tokens" placeholder="Initial Tokens" required>
-                <button type="submit">Create New User</button>
+                <input type="email" id="new-user-email" placeholder="ইমেইল" required>
+                <input type="password" id="new-user-password" placeholder="পাসওয়ার্ড" required>
+                <input type="text" id="new-user-name" placeholder="নাম" required>
+                <input type="number" id="initial-tokens" placeholder="প্রাথমিক টোকেন" required>
+                <button type="submit">নতুন ইউজার তৈরি করুন</button>
             </form>
-    
             <hr>
-    
-            <h3>Add Tokens</h3>
+            <h3>টোকেন অ্যাড করুন</h3>
             <form id="add-token-form">
-                <input type="email" id="user-email-to-add-token" placeholder="User Email" required>
-                <input type="number" id="tokens-to-add" placeholder="Tokens to Add" required>
-                <button type="submit">Add Tokens</button>
+                <input type="email" id="user-email-to-add-token" placeholder="ইউজার ইমেইল" required>
+                <input type="number" id="tokens-to-add" placeholder="যোগ করার টোকেন" required>
+                <button type="submit">টোকেন অ্যাড করুন</button>
             </form>
         </div>
-    
         <div id="reports-tab" class="tab-content">
-            <h3>Real-time Betting Report</h3>
+            <h3>রিয়েল-টাইম বেটিং রিপোর্ট</h3>
             <div class="report-section">
-                <h4>Single Betting Graph</h4>
+                <h4>সিঙ্গেল বেটিং গ্রাফ</h4>
                 <canvas id="singleBetChart"></canvas>
             </div>
             <div class="report-section">
-                <h4>Patti List</h4>
+                <h4>খেলা হয়েছে এমন পাত্তি</h4>
                 <ul id="pattiList"></ul>
             </div>
             <div class="report-section">
-                <h4>Full Report</h4>
-                <button id="generate-report-btn">Generate Report</button>
+                <h4>সম্পূর্ণ রিপোর্ট জেনারেট করুন</h4>
+                <button id="generate-report-btn">রিপোর্ট জেনারেট করুন</button>
             </div>
         </div>
     </div>
@@ -264,18 +235,465 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="your-script.js"></script>
     <script>
-        // Your Firebase config object goes here
+        // Firebase কনফিগারেশন
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDMrTQqAao4-zLcCTqlPnUi019muQK9kvE",
+            authDomain: "data-entry-3b50f.firebaseapp.com",
+            projectId: "data-entry-3b50f",
+            storageBucket: "data-entry-3b50f.firebasestorage.app",
+            messagingSenderId: "1022730252825",
+            appId: "1:1022730252825:web:b3a85e4f7d55e62d15f088",
+            measurementId: "G-2KJP9Q59XP"
         };
         firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const loginPage = document.getElementById('login-page');
+        const mainApp = document.getElementById('main-app');
+        const adminPanel = document.getElementById('admin-panel');
+        const loginForm = document.getElementById('login-form');
+        const logoutBtn = document.getElementById('logout-btn');
+        const adminLogoutBtn = document.getElementById('admin-logout-btn');
+        const userNameSpan = document.getElementById('user-name');
+        const userTokensSpan = document.getElementById('user-tokens');
+        const resultDateSpan = document.getElementById('result-date');
+        const resultsContainer = document.getElementById('results-container');
+        const betSingleBtn = document.getElementById('bet-single-btn');
+        const betPattiBtn = document.getElementById('bet-patti-btn');
+        const singleNumberInput = document.getElementById('single-number');
+        const singleTokensInput = document.getElementById('single-tokens');
+        const pattiNumbersInput = document.getElementById('patti-numbers');
+        const pattiTokensInput = document.getElementById('patti-tokens');
+        const adduserForm = document.getElementById('add-user-form');
+        const updateResultsBtn = document.getElementById('update-results-btn');
+        const addTokenForm = document.getElementById('add-token-form');
+        const betOpenArea = document.getElementById('betting-open-area');
+        const betClosedMessage = document.getElementById('betting-closed-message');
+        const generateReportBtn = document.getElementById('generate-report-btn');
+        const generateUserReportBtn = document.getElementById('generate-user-report-btn');
+
+        const gameSchedule = [
+            '11:00 AM', '12:30 PM', '2:00 PM', '3:30 PM',
+            '5:00 PM', '6:30 PM', '8:00 PM', '9:00 PM'
+        ];
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                db.collection('admins').doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        loginPage.style.display = 'none';
+                        mainApp.style.display = 'none';
+                        adminPanel.style.display = 'block';
+                        setupAdminPanel();
+                    } else {
+                        db.collection('users').doc(user.uid).get().then(userDoc => {
+                            if (userDoc.exists) {
+                                loginPage.style.display = 'none';
+                                mainApp.style.display = 'block';
+                                adminPanel.style.display = 'none';
+                                fetchUserData(user.uid);
+                                fetchResults();
+                                checkBettingTime();
+                                setInterval(checkBettingTime, 10000);
+                            } else {
+                                auth.signOut();
+                            }
+                        });
+                    }
+                }).catch(error => {
+                    console.error("Error checking user role:", error);
+                    auth.signOut();
+                });
+            } else {
+                loginPage.style.display = 'flex';
+                mainApp.style.display = 'none';
+                adminPanel.style.display = 'none';
+            }
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(error => {
+                    alert("লগইন ব্যর্থ হয়েছে: " + error.code + " - " + error.message);
+                });
+        });
+
+        logoutBtn.addEventListener('click', () => auth.signOut());
+        adminLogoutBtn.addEventListener('click', () => auth.signOut());
+
+        const checkBettingTime = () => {
+            const now = new Date();
+            let isBettingOpen = false;
+            let nextGameIndex = -1;
+            for (let i = 0; i < gameSchedule.length; i++) {
+                const timeStr = gameSchedule[i];
+                const [time, period] = timeStr.split(' ');
+                let [hour, minute] = time.split(':').map(Number);
+                if (period === 'PM' && hour !== 12) hour += 12;
+                if (period === 'AM' && hour === 12) hour = 0;
+                const gameTime = new Date();
+                gameTime.setHours(hour, minute, 0, 0);
+                if (now < gameTime) {
+                    nextGameIndex = i;
+                    break;
+                }
+            }
+            if (nextGameIndex !== -1) {
+                const timeStr = gameSchedule[nextGameIndex];
+                const [time, period] = timeStr.split(' ');
+                let [hour, minute] = time.split(':').map(Number);
+                if (period === 'PM' && hour !== 12) hour += 12;
+                if (period === 'AM' && hour === 12) hour = 0;
+                const bettingCloseTime = new Date();
+                bettingCloseTime.setHours(hour, minute - 20, 0, 0);
+                if (now < bettingCloseTime) {
+                    isBettingOpen = true;
+                }
+            } else {
+                isBettingOpen = true;
+            }
+            if (isBettingOpen) {
+                betOpenArea.style.display = 'block';
+                betClosedMessage.style.display = 'none';
+            } else {
+                betOpenArea.style.display = 'none';
+                betClosedMessage.style.display = 'block';
+            }
+        };
+
+        const fetchUserData = (userId) => {
+            db.collection('users').doc(userId).onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    userNameSpan.textContent = data.name;
+                    userTokensSpan.textContent = data.tokens;
+                }
+            });
+        };
+
+        const fetchResults = () => {
+            db.collection('results').doc('today').onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    resultDateSpan.textContent = data.date;
+                    renderResults(data.games);
+                }
+            });
+        };
+
+        const renderResults = (results) => {
+            resultsContainer.innerHTML = '';
+            gameSchedule.forEach((time, index) => {
+                const result = results[index];
+                const resultBox = document.createElement('div');
+                resultBox.className = 'result-box';
+                resultBox.innerHTML = `
+                    <h3>${result ? result.patti : '---'}</h3>
+                    <p>${result ? result.single : '---'}</p>
+                    <small>${time}</small>
+                `;
+                resultsContainer.appendChild(resultBox);
+            });
+        };
+
+        if (betSingleBtn) {
+            betSingleBtn.addEventListener('click', async () => {
+                const singleNumber = singleNumberInput.value;
+                const tokens = parseInt(singleTokensInput.value);
+                if (!singleNumber || tokens <= 0 || !auth.currentUser) {
+                    alert("বেট করার জন্য সিঙ্গেল নাম্বার এবং টোকেন সংখ্যা সঠিকভাবে পূরণ করুন।");
+                    return;
+                }
+                const userId = auth.currentUser.uid;
+                const userRef = db.collection('users').doc(userId);
+                const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+                try {
+                    await db.runTransaction(async (transaction) => {
+                        const userDoc = await transaction.get(userRef);
+                        if (!userDoc.exists) {
+                            throw "ইউজার ডেটা খুঁজে পাওয়া যায়নি!";
+                        }
+                        const currentTokens = userDoc.data().tokens;
+                        if (currentTokens >= tokens) {
+                            const newTokens = currentTokens - tokens;
+                            transaction.update(userRef, { tokens: newTokens });
+                            const betRef = db.collection('bets').doc();
+                            transaction.set(betRef, {
+                                userId: userId,
+                                type: 'single',
+                                number: singleNumber,
+                                tokens: tokens,
+                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                gameTime: betTime
+                            });
+                        } else {
+                            throw new Error('আপনার টোকেন যথেষ্ট নয়।');
+                        }
+                    });
+                    alert('আপনার বাজি সফল হয়েছে!');
+                } catch (error) {
+                    alert("বাজি ধরতে ব্যর্থ: " + error.message);
+                }
+            });
+        }
+        if (betPattiBtn) {
+            betPattiBtn.addEventListener('click', async () => {
+                const pattiNumbers = pattiNumbersInput.value;
+                const tokens = parseInt(pattiTokensInput.value);
+                if (!pattiNumbers || tokens <= 0 || !auth.currentUser) {
+                    alert("বেট করার জন্য পাত্তি নাম্বার এবং টোকেন সংখ্যা সঠিকভাবে পূরণ করুন।");
+                    return;
+                }
+                const userId = auth.currentUser.uid;
+                const userRef = db.collection('users').doc(userId);
+                const betTime = new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+                try {
+                    await db.runTransaction(async (transaction) => {
+                        const userDoc = await transaction.get(userRef);
+                        if (!userDoc.exists) {
+                            throw "ইউজার ডেটা খুঁজে পাওয়া যায়নি!";
+                        }
+                        const currentTokens = userDoc.data().tokens;
+                        if (currentTokens >= tokens) {
+                            const newTokens = currentTokens - tokens;
+                            transaction.update(userRef, { tokens: newTokens });
+                            const betRef = db.collection('bets').doc();
+                            transaction.set(betRef, {
+                                userId: userId,
+                                type: 'patti',
+                                numbers: pattiNumbers.split(',').map(n => n.trim()),
+                                tokens: tokens,
+                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                gameTime: betTime
+                            });
+                        } else {
+                            throw new Error('আপনার টোকেন যথেষ্ট নয়।');
+                        }
+                    });
+                    alert('আপনার পাত্তি বাজি সফল হয়েছে!');
+                } catch (error) {
+                    alert("পাত্তি বাজি ধরতে ব্যর্থ: " + error.message);
+                }
+            });
+        }
+        function showTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+        }
+        const setupAdminPanel = () => {
+            const resultUpdateArea = document.getElementById('result-entry-tab').querySelector('#result-update-area');
+            resultUpdateArea.innerHTML = '';
+            gameSchedule.forEach((time, index) => {
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'bet-input-group';
+                inputGroup.innerHTML = `
+                    <h3>${time}</h3>
+                    <label for="patti-${index}">পাত্তি:</label>
+                    <input type="text" id="patti-${index}" placeholder="যেমন: ১২৩">
+                    <label for="single-${index}">সিঙ্গেল:</label>
+                    <input type="text" id="single-${index}" placeholder="যেমন: ৭">
+                `;
+                resultUpdateArea.appendChild(inputGroup);
+            });
+            setupGraphs();
+        };
+        if (adduserForm) {
+            adduserForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newUserEmail = document.getElementById('new-user-email').value;
+                const newUserPassword = document.getElementById('new-user-password').value;
+                const newUserName = document.getElementById('new-user-name').value;
+                const initialTokens = parseInt(document.getElementById('initial-tokens').value);
+                try {
+                    const userCredential = await auth.createUserWithEmailAndPassword(newUserEmail, newUserPassword);
+                    const user = userCredential.user;
+                    await db.collection('users').doc(user.uid).set({
+                        name: newUserName,
+                        email: newUserEmail,
+                        tokens: initialTokens,
+                        created_at: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert('নতুন ইউজার সফলভাবে তৈরি হয়েছে!');
+                } catch (error) {
+                    alert('ইউজার তৈরি করতে ব্যর্থ: ' + error.message);
+                }
+            });
+        }
+        if (addTokenForm) {
+            addTokenForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userEmail = document.getElementById('user-email-to-add-token').value;
+                const tokensToAdd = parseInt(document.getElementById('tokens-to-add').value);
+                try {
+                    const querySnapshot = await db.collection('users').where('email', '==', userEmail).get();
+                    if (!querySnapshot.empty) {
+                        const userDoc = querySnapshot.docs[0];
+                        const userRef = userDoc.ref;
+                        const currentTokens = userDoc.data().tokens;
+                        const newTokens = currentTokens + tokensToAdd;
+                        await userRef.update({ tokens: newTokens });
+                        alert('সফলভাবে টোকেন অ্যাড করা হয়েছে!');
+                    } else {
+                        alert('এই ইমেলের কোনো ইউজার খুঁজে পাওয়া যায়নি।');
+                    }
+                } catch (error) {
+                    alert('টোকেন অ্যাড করতে ব্যর্থ: ' + error.message);
+                }
+            });
+        }
+        if (updateResultsBtn) {
+            updateResultsBtn.addEventListener('click', async () => {
+                const results = [];
+                gameSchedule.forEach((time, index) => {
+                    const patti = document.getElementById(`patti-${index}`).value;
+                    const single = document.getElementById(`single-${index}`).value;
+                    if (patti && single) {
+                        results.push({ patti: patti, single: single });
+                    }
+                });
+                if (results.length > 0) {
+                    try {
+                        await db.collection('results').doc('today').set({
+                            date: new Date().toLocaleDateString('bn-BD'),
+                            games: results
+                        });
+                        alert('ফলাফল সফলভাবে আপডেট হয়েছে!');
+                    } catch (error) {
+                        alert('ফলাফল আপডেট করতে ব্যর্থ: ' + error.message);
+                    }
+                } else {
+                    alert('কোনো ফলাফল প্রবেশ করানো হয়নি!');
+                }
+            });
+        }
+        const setupGraphs = () => {
+            db.collection('bets').onSnapshot(snapshot => {
+                const singleBetData = {};
+                for (let i = 0; i <= 9; i++) {
+                    singleBetData[i] = 0;
+                }
+                const pattiList = new Set();
+                snapshot.docs.forEach(doc => {
+                    const bet = doc.data();
+                    if (bet.type === 'single') {
+                        const number = bet.number;
+                        if (singleBetData[number] !== undefined) {
+                            singleBetData[number] += bet.tokens;
+                        }
+                    } else if (bet.type === 'patti') {
+                        bet.numbers.forEach(patti => {
+                            pattiList.add(patti);
+                        });
+                    }
+                });
+                const chartData = {
+                    labels: Object.keys(singleBetData),
+                    datasets: [{
+                        label: 'টোকেন সংখ্যা',
+                        data: Object.values(singleBetData),
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                };
+                const config = {
+                    type: 'bar',
+                    data: chartData,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                };
+                const existingChart = Chart.getChart("singleBetChart");
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+                const singleBetChart = new Chart(
+                    document.getElementById('singleBetChart'),
+                    config
+                );
+                const pattiUl = document.getElementById('pattiList');
+                pattiUl.innerHTML = '';
+                if (pattiList.size > 0) {
+                    pattiList.forEach(patti => {
+                        const li = document.createElement('li');
+                        li.textContent = patti;
+                        pattiUl.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'কোনো পাত্তি খেলা হয়নি।';
+                    pattiUl.appendChild(li);
+                }
+            });
+        };
+        if (generateUserReportBtn) {
+            generateUserReportBtn.addEventListener('click', async () => {
+                if (!auth.currentUser) {
+                    alert("রিপোর্ট দেখতে আপনাকে লগইন করতে হবে।");
+                    return;
+                }
+                const userId = auth.currentUser.uid;
+                const bets = await db.collection('bets').where('userId', '==', userId).get();
+                let report = "আপনার বেটিং রিপোর্ট:\n\n";
+                if (bets.empty) {
+                    report += "কোনো বেট খুঁজে পাওয়া যায়নি।";
+                } else {
+                    bets.docs.forEach(doc => {
+                        const bet = doc.data();
+                        report += `টাইপ: ${bet.type}\n`;
+                        report += `নাম্বার: ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
+                        report += `টোকেন: ${bet.tokens}\n`;
+                        report += `সময়: ${bet.gameTime}\n`;
+                        report += "--------------------\n";
+                    });
+                }
+                alert(report);
+            });
+        }
+        if (generateReportBtn) {
+            generateReportBtn.addEventListener('click', async () => {
+                if (!auth.currentUser) {
+                    alert("রিপোর্ট দেখতে আপনাকে লগইন করতে হবে।");
+                    return;
+                }
+                const userId = auth.currentUser.uid;
+                const isAdminSnapshot = await db.collection('admins').doc(userId).get();
+                if (!isAdminSnapshot.exists) {
+                    alert("এই রিপোর্ট দেখার অনুমতি আপনার নেই।");
+                    return;
+                }
+                const bets = await db.collection('bets').get();
+                let report = "সম্পূর্ণ বেটিং রিপোর্ট:\n\n";
+                if (bets.empty) {
+                    report += "কোনো বেট খুঁজে পাওয়া যায়নি।";
+                } else {
+                    bets.docs.forEach(doc => {
+                        const bet = doc.data();
+                        report += `ইউজার আইডি: ${bet.userId}\n`;
+                        report += `টাইপ: ${bet.type}\n`;
+                        report += `নাম্বার: ${bet.type === 'single' ? bet.number : bet.numbers.join(', ')}\n`;
+                        report += `টোকেন: ${bet.tokens}\n`;
+                        report += `সময়: ${bet.gameTime}\n`;
+                        report += "--------------------\n";
+                    });
+                }
+                alert(report);
+            });
+        }
     </script>
 </body>
 </html>
