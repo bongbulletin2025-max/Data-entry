@@ -36,13 +36,20 @@ const gameSchedule = [
 // Check Auth State on Load
 auth.onAuthStateChanged(user => {
     if (user) {
-        db.collection('admins').doc(user.uid).get().then(doc => {
-            if (doc.exists) {
+        // Fetch user data from 'admins' and 'users' collections
+        const adminDoc = db.collection('admins').doc(user.uid).get();
+        const userDoc = db.collection('users').doc(user.uid).get();
+
+        Promise.all([adminDoc, userDoc]).then(results => {
+            const isAdmin = results[0].exists;
+            const isUser = results[1].exists;
+
+            if (isAdmin) {
                 loginPage.style.display = 'none';
                 mainApp.style.display = 'none';
                 adminPanel.style.display = 'block';
                 setupAdminPanel();
-            } else {
+            } else if (isUser) {
                 loginPage.style.display = 'none';
                 mainApp.style.display = 'block';
                 adminPanel.style.display = 'none';
@@ -50,9 +57,13 @@ auth.onAuthStateChanged(user => {
                 fetchResults();
                 checkBettingTime();
                 setInterval(checkBettingTime, 10000); // Check every 10 seconds
+            } else {
+                // User is authenticated but not in 'admins' or 'users' collection
+                auth.signOut();
             }
         }).catch(error => {
-            alert("অ্যাডমিন ডেটা অ্যাক্সেস করতে ব্যর্থ: " + error.message);
+            alert("ডেটা অ্যাক্সেস করতে ব্যর্থ: " + error.message);
+            auth.signOut();
         });
     } else {
         loginPage.style.display = 'flex';
@@ -478,3 +489,4 @@ generateReportBtn.addEventListener('click', async () => {
     }
     alert(report);
 });
+                
